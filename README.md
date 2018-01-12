@@ -187,7 +187,11 @@ with tf.Session() as sess:
 
 GitHub完整代码 [https://github.com/InsaneLife/dssm](https://github.com/InsaneLife/dssm)
 
-l1=W1x
+Multi-view DSSM实现同理，可以参考GitHub：[multi_view_dssm_v3](https://github.com/InsaneLife/dssm/blob/master/multi_view_dssm_v3.py)
 
-li=f(Wili−1+bi),i=2,...,N−1
+
+
+CSDN原文：[http://blog.csdn.net/shine19930820/article/details/79042567](http://blog.csdn.net/shine19930820/article/details/79042567)
+
+
 
