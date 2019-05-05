@@ -3,4 +3,4 @@ data/*
 !data/readme.md
 !data/vocab.txt
 Summaries/
-# __pycache__/
+__pycache__/
