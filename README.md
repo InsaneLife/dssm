@@ -3,9 +3,10 @@
 [A Multi-View Deep Learning Approach for Cross Domain User Modeling in Recommendation Systems](http://blog.csdn.net/shine19930820/article/details/78810984)的实现Demo。
 
 
-注意：
-由于之前代码api过时，已更新最新代码于：dssm_rnn.py
-数据处理代码和数据已经更新，非bag of words:wq
+# 注意：
+由于之前代码api过时，已更新最新代码于：[dssm_rnn.py](https://github.com/InsaneLife/dssm/blob/master/dssm_rnn.py) 
+
+数据处理代码[data_input.py](https://github.com/InsaneLife/dssm/blob/master/data_input.py) 和数据[data](https://github.com/InsaneLife/dssm/tree/master/data) 已经更新，由于使用了rnn，所以**输入非bag of words方式。**
 
 # 1. 数据&环境
 
