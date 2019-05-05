@@ -5,7 +5,7 @@
 
 注意：
 由于之前代码api过时，已更新最新代码于：dssm_rnn.py
-数据处理代码和数据已经更新，非bag of words
+数据处理代码和数据已经更新，非bag of words:wq
 
 # 1. 数据&环境
 
