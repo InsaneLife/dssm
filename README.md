@@ -3,13 +3,17 @@
 [A Multi-View Deep Learning Approach for Cross Domain User Modeling in Recommendation Systems](http://blog.csdn.net/shine19930820/article/details/78810984)的实现Demo。
 
 
+注意：
+由于之前代码api过时，已更新最新代码于：dssm_rnn.py
+数据处理代码和数据已经更新，非bag of words
 
-# 1. 数据
+# 1. 数据&环境
 
 DSSM，对于输入数据是Query对，即Query短句和相应的展示，展示中分点击和未点击，分别为正负样，同时对于点击的先后顺序，也是有不同赋值，具体可参考论文。
 
 对于我的Query数据本人无权开放，还请自行寻找数据。
-
+环境：
+1. win, python3.5, tensorflow1.4.
 # 2. word hashing
 
 原文使用3-grams，对于中文，我使用了uni-gram，因为中文本身字有一定代表意义（也有论文拆笔画），对于每个gram都使用one-hot编码代替，最终可以大大降低短句维度。
