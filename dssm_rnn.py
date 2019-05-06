@@ -306,7 +306,6 @@ with tf.Session() as sess:
         for batch_id in batch_ids:
             # print(batch_id)
             sess.run(train_step, feed_dict=feed_dict(True, batch_id, 0.5))
-
         end = time.time()
         # train loss
         epoch_loss = 0
@@ -317,9 +316,8 @@ with tf.Session() as sess:
         epoch_loss /= (train_epoch_steps)
         train_loss = sess.run(train_loss_summary, feed_dict={train_average_loss: epoch_loss})
         train_writer.add_summary(train_loss, epoch + 1)
-
-        print("\nEpoch #%-5d | Train Loss: %-4.3f | PureTrainTime: %-3.3fs" %
-              (epoch / train_epoch_steps, epoch_loss, end - start))
+        print("\nEpoch #%d | Train Loss: %-4.3f | PureTrainTime: %-3.3fs" %
+              (epoch, epoch_loss, end - start))
 
         # test loss
         start = time.time()
@@ -331,8 +329,8 @@ with tf.Session() as sess:
         test_loss = sess.run(loss_summary, feed_dict={average_loss: epoch_loss})
         train_writer.add_summary(test_loss, epoch + 1)
         # test_writer.add_summary(test_loss, step + 1)
-        print("Epoch #%-5d | Test  Loss: %-4.3f | Calc_LossTime: %-3.3fs" %
-              (epoch / train_epoch_steps, epoch_loss, start - end))
+        print("Epoch #%d | Test  Loss: %-4.3f | Calc_LossTime: %-3.3fs" %
+              (epoch, epoch_loss, start - end))
 
     # 保存模型
     save_path = saver.save(sess, "model/model_1.ckpt")
