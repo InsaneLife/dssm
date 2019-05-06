@@ -4,3 +4,7 @@ data/*
 !data/vocab.txt
 Summaries/
 __pycache__/
+model/
+
+# 通用
+envi/
