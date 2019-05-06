@@ -8,6 +8,8 @@
 
 数据处理代码[data_input.py](https://github.com/InsaneLife/dssm/blob/master/data_input.py) 和数据[data](https://github.com/InsaneLife/dssm/tree/master/data) 已经更新，由于使用了rnn，所以**输入非bag of words方式。**
 
+![img](https://ask.qcloudimg.com/http-save/yehe-1881084/7ficv1hhqf.png?imageView2/2/w/1620) 
+
 # 1. 数据&环境
 
 DSSM，对于输入数据是Query对，即Query短句和相应的展示，展示中分点击和未点击，分别为正负样，同时对于点击的先后顺序，也是有不同赋值，具体可参考论文。
