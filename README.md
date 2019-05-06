@@ -10,6 +10,8 @@
 
 ![img](https://ask.qcloudimg.com/http-save/yehe-1881084/7ficv1hhqf.png?imageView2/2/w/1620) 
 
+> 来源：Palangi, Hamid, et al. "Semantic modelling with long-short-term memory for information retrieval." arXiv preprint arXiv:1412.6629 2014. 
+
 # 1. 数据&环境
 
 DSSM，对于输入数据是Query对，即Query短句和相应的展示，展示中分点击和未点击，分别为正负样，同时对于点击的先后顺序，也是有不同赋值，具体可参考论文。
