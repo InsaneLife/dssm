@@ -12,16 +12,9 @@
 
 > 来源：Palangi, Hamid, et al. "Semantic modelling with long-short-term memory for information retrieval." arXiv preprint arXiv:1412.6629 2014. 
 >
-> 训练日志：
+> 训练损失，在45个epoch时基本不下降：
 >
-> Epoch #0 | Train Loss: 122.739 | PureTrainTime: 5.143s
-> Epoch #0 | Test  Loss: 122.122 | Calc_LossTime: 1.320s
->
-> Epoch #1 | Train Loss: 100.575 | PureTrainTime: 4.863s
-> Epoch #1 | Test  Loss: 100.619 | Calc_LossTime: 0.992s
->
-> Epoch #2 | Train Loss: 75.475 | PureTrainTime: 4.639s
-> Epoch #2 | Test  Loss: 75.030 | Calc_LossTime: 1.031s
+> ![dssm_rnn_loss](.\assets/dssm_rnn_loss.png)
 
 # 1. 数据&环境
 
