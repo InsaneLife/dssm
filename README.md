@@ -14,7 +14,7 @@
 >
 > 训练损失，在45个epoch时基本不下降：
 >
-> ![dssm_rnn_loss](.\assets/dssm_rnn_loss.png)
+> ![dssm_rnn_loss](https://raw.githubusercontent.com/InsaneLife/dssm/master/assets/dssm_rnn_loss.png)
 
 # 1. 数据&环境
 
