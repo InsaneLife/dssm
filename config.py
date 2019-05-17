@@ -20,8 +20,8 @@ class Config(object):
     pad = '[PAD]'
     vocab_path = './data/vocab.txt'
     file_train = './data/oppo_round1_train_20180929.mini'
-    file_train = './data/oppo_round1_train_20180929.txt'
-    file_vali = './data/oppo_round1_vali_20180929.mini'
+    # file_train = './data/oppo_round1_train_20180929.txt'
+    # file_vali = './data/oppo_round1_vali_20180929.mini'
     file_vali = './data/oppo_round1_vali_20180929.txt'
     max_seq_len = 10
     hidden_size_rnn = 100
