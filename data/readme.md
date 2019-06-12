@@ -12,7 +12,7 @@
 
 为了应用来训练DSSM demo，将prefix和title作为正样，prefix和query_prediction（除title以外）作为负样本。
 
-下载链接：<https://pan.baidu.com/s/1Obm8oRVZEIh76-cpPc0qZw>
+下载链接：链接: https://pan.baidu.com/s/1Hg2Hubsn3GEuu4gubbHCzw 提取码: 7p3n
 
 本数据仅限用于个人实验，如数据版权问题，请联系[chou.young@qq.com](mailto:chou.young@qq.com) 下架。
 
