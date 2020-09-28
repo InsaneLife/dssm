@@ -6,6 +6,9 @@ Summaries/
 __pycache__/
 model/
 
+# py
+test.py
+
 # 通用
 envi/
 Summaries/

@@ -1,3 +1,4 @@
+# OPPO手机搜索排序query-title语义匹配数据集
 数据来自天池大数据比赛，是OPPO手机搜索排序query-title语义匹配的问题。
 
 数据格式： 数据分4列，\t分隔。
@@ -19,3 +20,10 @@
 
 
 下载解压到data文件夹即可，注意修改config.py中配置：file_train, file_vali。
+
+
+# 其他数据集
+https://paddlehub.readthedocs.io/zh_CN/latest/reference/dataset.html
+
+## LCQMC
+
