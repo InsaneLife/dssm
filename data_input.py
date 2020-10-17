@@ -3,6 +3,7 @@
 import json
 from config import Config
 import numpy as np
+import paddlehub as hub
 
 # 配置文件
 conf = Config()
@@ -10,7 +11,7 @@ conf = Config()
 
 def gen_word_set(file_path, out_path='./data/words.txt'):
     word_set = set()
-    with open(file_path, encoding='utf8') as f:
+    with open(file_path, encoding='utf-8') as f:
         for line in f.readlines():
             spline = line.strip().split('\t')
             if len(spline) < 4:
@@ -25,7 +26,7 @@ def gen_word_set(file_path, out_path='./data/words.txt'):
             for each in query_pred:
                 for w in each:
                     word_set.add(w)
-    with open(word_set, 'w', encoding='utf8') as o:
+    with open(word_set, 'w', encoding='utf-8') as o:
         for w in word_set:
             o.write(w + '\n')
     pass
@@ -125,6 +126,26 @@ def get_data_bow(file_path):
             data_arr.append([prefix_ids, title_ids, int(label)])
     return data_arr
 
+def trans_lcqmc(dataset):
+    out_arr =  []
+    for each in dataset:
+        t1, t2, label = each.text_a, each.text_b, int(each.label)
+        t1_ids = convert_seq2bow(t1, conf.vocab_map)
+        t1_len = len(t1_ids)
+        t2_ids = convert_seq2bow(t2, conf.vocab_map)
+        t2_len = len(t2_ids)
+        out_arr.append([t1_ids, t2_ids, label])
+    return out_arr
+
+def get_lcqmc():
+    """
+    使用LCQMC数据集，并将其转为word_id
+    """
+    dataset = hub.dataset.LCQMC()
+    train_set = trans_lcqmc(dataset.train_examples)
+    dev_set = trans_lcqmc(dataset.dev_examples)
+    test_set = trans_lcqmc(dataset.test_examples)
+    return train_set, dev_set, test_set
 
 if __name__ == '__main__':
     # prefix, query_prediction, title, tag, label
@@ -132,6 +153,7 @@ if __name__ == '__main__':
     file_train = './data/oppo_round1_train_20180929.txt'
     file_vali = './data/oppo_round1_vali_20180929.txt'
     # data_train = get_data(file_train)
-    data_train = get_data(file_vali)
-    print(len(data_train['query']), len(data_train['doc_pos']), len(data_train['doc_neg']))
+    # data_train = get_data(file_vali)
+    # print(len(data_train['query']), len(data_train['doc_pos']), len(data_train['doc_neg']))
+    dataset = get_lcqmc()
     pass

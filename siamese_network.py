@@ -1,8 +1,14 @@
-# coding=utf8
-"""
-python=3.5
-TensorFlow=1.2.1
-"""
+#!/usr/bin/env python
+#encoding=utf-8
+'''
+@Time    :   2020/10/17 11:38:00
+@Author  :   zhiyang.zzy 
+@Contact :   zhiyangchou@gmail.com
+@Desc    :   1. 使用预训练词向量。2. 使用lcqmc数据集实验，
+'''
+
+# here put the import lib
+
 
 import time
 import numpy as np
@@ -10,6 +16,8 @@ import tensorflow as tf
 import data_input
 from config import Config
 import random
+import paddlehub as hub
+
 
 random.seed(9102)
 
@@ -17,18 +25,15 @@ start = time.time()
 # 是否加BN层
 norm, epsilon = False, 0.001
 
-# TRIGRAM_D = 21128
-TRIGRAM_D = 100
-# query batch size
-query_BS = 100
-
-# 读取数据
+# 读取配置
 conf = Config()
-data_train = data_input.get_data_siamese_rnn(conf.file_train)
-data_vali = data_input.get_data_siamese_rnn(conf.file_vali)
+# 读取数据
+dataset = hub.dataset.LCQMC()
+data_train = data_input.get_data(conf.file_train)
+data_vali = data_input.get_data(conf.file_vali)
 # print(len(data_train['query']), query_BS, len(data_train['query']) / query_BS)
-train_epoch_steps = int(len(data_train) / query_BS) - 1
-vali_epoch_steps = int(len(data_vali) / query_BS) - 1
+train_epoch_steps = int(len(data_train['query']) / query_BS) - 1
+vali_epoch_steps = int(len(data_vali['query']) / query_BS) - 1
 
 
 def variable_summaries(var, name):
@@ -44,30 +49,24 @@ def variable_summaries(var, name):
         tf.summary.histogram(name, var)
 
 
-def get_cosine_score(query_arr, doc_arr):
-    # query_norm = sqrt(sum(each x^2))
-    pooled_len_1 = tf.sqrt(tf.reduce_sum(tf.square(query_arr), 1))
-    pooled_len_2 = tf.sqrt(tf.reduce_sum(tf.square(doc_arr), 1))
-    pooled_mul_12 = tf.reduce_sum(tf.multiply(query_arr, doc_arr), 1)
-    cos_scores = tf.div(pooled_mul_12, pooled_len_1 * pooled_len_2 + 1e-8, name="cos_scores")
-    return cos_scores
-
-
 with tf.name_scope('input'):
     # 预测时只用输入query即可，将其embedding为向量。
     query_batch = tf.placeholder(tf.int32, shape=[None, None], name='query_batch')
-    doc_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_batch')
-    doc_label_batch = tf.placeholder(tf.float32, shape=[None], name='doc_label_batch')
+    doc_pos_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_positive_batch')
+    doc_neg_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_negative_batch')
     query_seq_length = tf.placeholder(tf.int32, shape=[None], name='query_sequence_length')
-    doc_seq_length = tf.placeholder(tf.int32, shape=[None], name='pos_seq_length')
+    pos_seq_length = tf.placeholder(tf.int32, shape=[None], name='pos_seq_length')
+    neg_seq_length = tf.placeholder(tf.int32, shape=[None], name='neg_sequence_length')
     on_train = tf.placeholder(tf.bool)
-    keep_prob = tf.placeholder(tf.float32, name='drop_out_prob')
+    drop_out_prob = tf.placeholder(tf.float32, name='drop_out_prob')
 
 with tf.name_scope('word_embeddings_layer'):
+    # 这里可以加载预训练词向量
     _word_embedding = tf.get_variable(name="word_embedding_arr", dtype=tf.float32,
                                       shape=[conf.nwords, TRIGRAM_D])
     query_embed = tf.nn.embedding_lookup(_word_embedding, query_batch, name='query_batch_embed')
-    doc_embed = tf.nn.embedding_lookup(_word_embedding, doc_batch, name='doc_positive_embed')
+    doc_pos_embed = tf.nn.embedding_lookup(_word_embedding, doc_pos_batch, name='doc_positive_embed')
+    doc_neg_embed = tf.nn.embedding_lookup(_word_embedding, doc_neg_batch, name='doc_negative_embed')
 
 with tf.name_scope('RNN'):
     # Abandon bag of words, use GRU, you can use stacked gru
@@ -89,31 +88,61 @@ with tf.name_scope('RNN'):
                                                                                      sequence_length=query_seq_length,
                                                                                      dtype=tf.float32)
         query_rnn_output = tf.concat([query_output_fw, query_output_bw], axis=-1)
-        query_rnn_output = tf.nn.dropout(query_rnn_output, keep_prob)
+        query_rnn_output = tf.nn.dropout(query_rnn_output, drop_out_prob)
         # doc_pos
         (_, _), (doc_pos_output_fw, doc_pos_output_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw,
-                                                                                         doc_embed,
-                                                                                         sequence_length=doc_seq_length,
+                                                                                         doc_pos_embed,
+                                                                                         sequence_length=pos_seq_length,
                                                                                          dtype=tf.float32)
-        doc_rnn_output = tf.concat([doc_pos_output_fw, doc_pos_output_bw], axis=-1)
-        doc_rnn_output = tf.nn.dropout(doc_rnn_output, keep_prob)
+        doc_pos_rnn_output = tf.concat([doc_pos_output_fw, doc_pos_output_bw], axis=-1)
+        doc_pos_rnn_output = tf.nn.dropout(doc_pos_rnn_output, drop_out_prob)
+        # doc_neg
+        (_, _), (doc_neg_output_fw, doc_neg_output_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw,
+                                                                                         doc_neg_embed,
+                                                                                         sequence_length=neg_seq_length,
+                                                                                         dtype=tf.float32)
+        doc_neg_rnn_output = tf.concat([doc_neg_output_fw, doc_neg_output_bw], axis=-1)
+        doc_neg_rnn_output = tf.nn.dropout(doc_neg_rnn_output, drop_out_prob)
+
+with tf.name_scope('Merge_Negative_Doc'):
+    # 合并负样本，tile可选择是否扩展负样本。
+    # doc_y = tf.tile(doc_positive_y, [1, 1])
+    doc_y = tf.tile(doc_pos_rnn_output, [1, 1])
+
+    for i in range(NEG):
+        for j in range(query_BS):
+            # slice(input_, begin, size)切片API
+            # doc_y = tf.concat([doc_y, tf.slice(doc_negative_y, [j * NEG + i, 0], [1, -1])], 0)
+            doc_y = tf.concat([doc_y, tf.slice(doc_neg_rnn_output, [j * NEG + i, 0], [1, -1])], 0)
 
 with tf.name_scope('Cosine_Similarity'):
     # Cosine similarity
-    cos_sim = get_cosine_score(query_rnn_output, doc_rnn_output)
-    cos_sim_prob = tf.clip_by_value(cos_sim, 1e-8, 1.0)
+    # query_norm = sqrt(sum(each x^2))
+    query_norm = tf.tile(tf.sqrt(tf.reduce_sum(tf.square(query_rnn_output), 1, True)), [NEG + 1, 1])
+    # doc_norm = sqrt(sum(each x^2))
+    doc_norm = tf.sqrt(tf.reduce_sum(tf.square(doc_y), 1, True))
+
+    prod = tf.reduce_sum(tf.multiply(tf.tile(query_rnn_output, [NEG + 1, 1]), doc_y), 1, True)
+    norm_prod = tf.multiply(query_norm, doc_norm)
+
+    # cos_sim_raw = query * doc / (||query|| * ||doc||)
+    cos_sim_raw = tf.truediv(prod, norm_prod)
+    # gamma = 20
+    cos_sim = tf.transpose(tf.reshape(tf.transpose(cos_sim_raw), [NEG + 1, query_BS])) * 20
 
 with tf.name_scope('Loss'):
     # Train Loss
-    cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=doc_label_batch, logits=cos_sim)
-    losses = tf.reduce_sum(cross_entropy)
-    tf.summary.scalar('loss', losses)
-    pass
+    # 转化为softmax概率矩阵。
+    prob = tf.nn.softmax(cos_sim)
+    # 只取第一列，即正样本列概率。
+    hit_prob = tf.slice(prob, [0, 0], [-1, 1])
+    loss = -tf.reduce_sum(tf.log(hit_prob))
+    tf.summary.scalar('loss', loss)
 
 with tf.name_scope('Training'):
     # Optimizer
-    train_step = tf.train.AdamOptimizer(conf.learning_rate).minimize(losses)
-    pass
+    train_step = tf.train.AdamOptimizer(conf.learning_rate).minimize(loss)
+
 # with tf.name_scope('Accuracy'):
 #     correct_prediction = tf.equal(tf.argmax(prob, 1), 0)
 #     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -131,23 +160,27 @@ with tf.name_scope('Train'):
 
 
 def pull_batch(data_map, batch_id):
-    query_index, title_index, label_index, dsize = range(4)
-    cur_data = data_map[batch_id * query_BS:(batch_id + 1) * query_BS]
-    query_in = [x[query_index] for x in cur_data]
-    doc_in = [x[title_index] for x in cur_data]
-    label = [x[label_index] for x in cur_data]
+    query_in = data_map['query'][batch_id * query_BS:(batch_id + 1) * query_BS]
+    query_len = data_map['query_len'][batch_id * query_BS:(batch_id + 1) * query_BS]
+    doc_positive_in = data_map['doc_pos'][batch_id * query_BS:(batch_id + 1) * query_BS]
+    doc_positive_len = data_map['doc_pos_len'][batch_id * query_BS:(batch_id + 1) * query_BS]
+    doc_negative_in = data_map['doc_neg'][batch_id * query_BS * NEG:(batch_id + 1) * query_BS * NEG]
+    doc_negative_len = data_map['doc_neg_len'][batch_id * query_BS * NEG:(batch_id + 1) * query_BS * NEG]
 
-    return query_in, doc_in, label
+    # query_in, doc_positive_in, doc_negative_in = pull_all(query_in, doc_positive_in, doc_negative_in)
+    return query_in, doc_positive_in, doc_negative_in, query_len, doc_positive_len, doc_negative_len
 
 
 def feed_dict(on_training, data_set, batch_id, drop_prob):
-    query_in, doc_in, label = pull_batch(data_set, batch_id)
-    # query_in, doc_in, label = np.array(query_in), np.array(doc_in), np.array(label)
+    query_in, doc_positive_in, doc_negative_in, query_seq_len, pos_seq_len, neg_seq_len = pull_batch(data_set,
+                                                                                                     batch_id)
     query_len = len(query_in)
     query_seq_len = [conf.max_seq_len] * query_len
     pos_seq_len = [conf.max_seq_len] * query_len
-    return {query_batch: query_in, doc_batch: doc_in, doc_label_batch: label, on_train: on_training,
-            keep_prob: drop_prob, query_seq_length: query_seq_len, doc_seq_length: pos_seq_len}
+    neg_seq_len = [conf.max_seq_len] * query_len * NEG
+    return {query_batch: query_in, doc_pos_batch: doc_positive_in, doc_neg_batch: doc_negative_in,
+            on_train: on_training, drop_out_prob: drop_prob, query_seq_length: query_seq_len,
+            neg_seq_length: neg_seq_len, pos_seq_length: pos_seq_len}
 
 
 # config = tf.ConfigProto()  # log_device_placement=True)
@@ -164,15 +197,16 @@ with tf.Session() as sess:
 
     start = time.time()
     for epoch in range(conf.num_epoch):
-        random.shuffle(data_train)
-        for batch_id in range(train_epoch_steps):
+        batch_ids = [i for i in range(train_epoch_steps)]
+        random.shuffle(batch_ids)
+        for batch_id in batch_ids:
             # print(batch_id)
             sess.run(train_step, feed_dict=feed_dict(True, data_train, batch_id, 0.5))
         end = time.time()
         # train loss
         epoch_loss = 0
         for i in range(train_epoch_steps):
-            loss_v = sess.run(losses, feed_dict=feed_dict(False, data_train, i, 1))
+            loss_v = sess.run(loss, feed_dict=feed_dict(False, data_train, i, 1))
             epoch_loss += loss_v
 
         epoch_loss /= (train_epoch_steps)
@@ -185,7 +219,7 @@ with tf.Session() as sess:
         start = time.time()
         epoch_loss = 0
         for i in range(vali_epoch_steps):
-            loss_v = sess.run(losses, feed_dict=feed_dict(False, data_vali, i, 1))
+            loss_v = sess.run(loss, feed_dict=feed_dict(False, data_vali, i, 1))
             epoch_loss += loss_v
         epoch_loss /= (vali_epoch_steps)
         test_loss = sess.run(loss_summary, feed_dict={average_loss: epoch_loss})

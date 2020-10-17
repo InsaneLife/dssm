@@ -26,4 +26,10 @@
 https://paddlehub.readthedocs.io/zh_CN/latest/reference/dataset.html
 
 ## LCQMC
+import paddlehub as hub
+dataset = hub.dataset.LCQMC()
 
+pass
+train:238766
+test:12500
+dev:8802

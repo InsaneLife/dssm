@@ -4,6 +4,16 @@
 
 
 # 注意：
+**\*\*\*\*2020/10/17\*\*\*\***
+
+由于之前数据集问题，会有不收敛问题，现更换数据集为LCQMC口语化描述的语义相似度数据集。
+
+> 难以找到搜索点击的公开数据集，暂且用语义相似任务数据集，有点变味了，哈哈
+
+
+
+**\*\*\*\*2019/5/18\*\*\*\***
+
 由于之前代码api过时，已更新最新代码于：[dssm_rnn.py](https://github.com/InsaneLife/dssm/blob/master/dssm_rnn.py) 
 
 数据处理代码[data_input.py](https://github.com/InsaneLife/dssm/blob/master/data_input.py) 和数据[data](https://github.com/InsaneLife/dssm/tree/master/data) 已经更新，由于使用了rnn，所以**输入非bag of words方式。**

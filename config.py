@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # encoding=utf-8
+'''
+Author: 	zhiyang.zzy 
+Date: 		2019-09-25 21:59:54
+Contact: 	zhiyangchou@gmail.com
+FilePath: /dssm/config.py
+Desc: 		
+'''
 
 
 def load_vocab(file_path):
@@ -19,10 +26,11 @@ class Config(object):
     unk = '[UNK]'
     pad = '[PAD]'
     vocab_path = './data/vocab.txt'
-    file_train = './data/oppo_round1_train_20180929.mini'
+    # file_train = './data/oppo_round1_train_20180929.mini'
     # file_train = './data/oppo_round1_train_20180929.txt'
-    file_vali = './data/oppo_round1_vali_20180929.mini'
-    # file_vali = './data/oppo_round1_vali_20180929.txt'
+    # file_vali = './data/oppo_round1_vali_20180929.mini'
+    file_vali = './data/oppo_round1_vali_20180929.txt'
+    file_train = file_vali
     max_seq_len = 10
     hidden_size_rnn = 100
     use_stack_rnn = False
@@ -31,6 +39,7 @@ class Config(object):
     num_epoch = 50
     summaries_dir = './Summaries/'
     gpu = 0
+    word_dim = 100
 
 
 if __name__ == '__main__':
