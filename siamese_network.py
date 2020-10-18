@@ -210,7 +210,7 @@ with tf.Session() as sess:
             data_train, batch_size=conf.batch_size))
         for i, (t1_ids, t1_len, t2_ids, t2_len, label) in enumerate(pbar):
             fd = feed_batch(t1_ids, t1_len, t2_ids, t2_len, label)
-            a = sess.run([query_norm, doc_norm, prod, cos_sim_raw], feed_dict=fd)
+            # a = sess.run([query_norm, doc_norm, prod, cos_sim_raw], feed_dict=fd)
             _, cur_loss = sess.run([train_step, loss], feed_dict=fd)
             pbar.set_description("Train loss:{};".format(cur_loss))
             # train_loss = sess.run(train_loss_summary, feed_dict={train_average_loss: cur_loss})

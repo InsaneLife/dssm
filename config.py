@@ -40,7 +40,7 @@ class Config(object):
     summaries_dir = './Summaries/'
     gpu = 0
     word_dim = 100
-    batch_size = 512
+    batch_size = 64
     keep_porb = 0.5
 
 
