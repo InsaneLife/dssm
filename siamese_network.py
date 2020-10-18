@@ -18,7 +18,7 @@ import paddlehub as hub
 from tqdm import tqdm
 import math
 from sklearn.metrics import accuracy_score
-
+import os
 
 import data_input
 from config import Config
