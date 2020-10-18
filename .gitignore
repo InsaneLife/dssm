@@ -3,12 +3,14 @@ data/*
 !data/readme.md
 !data/vocab.txt
 Summaries/
-__pycache__/
-model/
+
+Summaries/*
+model/*
 
 # py
 test.py
 
 # 通用
 envi/
-Summaries/
+__pycache__/
+.vscode/

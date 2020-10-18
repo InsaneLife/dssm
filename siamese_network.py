@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#encoding=utf-8
+# encoding=utf-8
 '''
 @Time    :   2020/10/17 11:38:00
 @Author  :   zhiyang.zzy 
@@ -8,32 +8,33 @@
 '''
 
 # here put the import lib
-
-
+import imp
+from os import name
 import time
 import numpy as np
 import tensorflow as tf
-import data_input
-from config import Config
 import random
 import paddlehub as hub
+from tqdm import tqdm
+import math
+from sklearn.metrics import accuracy_score
+
+
+import data_input
+from config import Config
 
 
 random.seed(9102)
 
 start = time.time()
-# 是否加BN层
-norm, epsilon = False, 0.001
 
 # 读取配置
 conf = Config()
 # 读取数据
 dataset = hub.dataset.LCQMC()
-data_train = data_input.get_data(conf.file_train)
-data_vali = data_input.get_data(conf.file_vali)
-# print(len(data_train['query']), query_BS, len(data_train['query']) / query_BS)
-train_epoch_steps = int(len(data_train['query']) / query_BS) - 1
-vali_epoch_steps = int(len(data_vali['query']) / query_BS) - 1
+data_train, data_val, data_test = data_input.get_lcqmc()
+print("train size:{},val size:{}, test size:{}".format(
+    len(data_train), len(data_val), len(data_test)))
 
 
 def variable_summaries(var, name):
@@ -51,92 +52,85 @@ def variable_summaries(var, name):
 
 with tf.name_scope('input'):
     # 预测时只用输入query即可，将其embedding为向量。
-    query_batch = tf.placeholder(tf.int32, shape=[None, None], name='query_batch')
-    doc_pos_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_positive_batch')
-    doc_neg_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_negative_batch')
-    query_seq_length = tf.placeholder(tf.int32, shape=[None], name='query_sequence_length')
-    pos_seq_length = tf.placeholder(tf.int32, shape=[None], name='pos_seq_length')
-    neg_seq_length = tf.placeholder(tf.int32, shape=[None], name='neg_sequence_length')
-    on_train = tf.placeholder(tf.bool)
-    drop_out_prob = tf.placeholder(tf.float32, name='drop_out_prob')
+    query_batch = tf.placeholder(
+        tf.int32, shape=[None, None], name='query_batch')
+    doc_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_batch')
+    query_seq_length = tf.placeholder(
+        tf.int32, shape=[None], name='query_sequence_length')
+    doc_seq_length = tf.placeholder(
+        tf.int32, shape=[None], name='doc_seq_length')
+    # label
+    sim_labels = tf.placeholder(tf.float32, shape=[None], name="sim_labels")
+    keep_prob_place = tf.placeholder(tf.float32, name='keep_prob')
+
 
 with tf.name_scope('word_embeddings_layer'):
     # 这里可以加载预训练词向量
     _word_embedding = tf.get_variable(name="word_embedding_arr", dtype=tf.float32,
-                                      shape=[conf.nwords, TRIGRAM_D])
-    query_embed = tf.nn.embedding_lookup(_word_embedding, query_batch, name='query_batch_embed')
-    doc_pos_embed = tf.nn.embedding_lookup(_word_embedding, doc_pos_batch, name='doc_positive_embed')
-    doc_neg_embed = tf.nn.embedding_lookup(_word_embedding, doc_neg_batch, name='doc_negative_embed')
+                                      shape=[conf.nwords, conf.word_dim])
+    query_embed = tf.nn.embedding_lookup(
+        _word_embedding, query_batch, name='query_batch_embed')
+    doc_embed = tf.nn.embedding_lookup(
+        _word_embedding, doc_batch, name='doc_positive_embed')
 
 with tf.name_scope('RNN'):
     # Abandon bag of words, use GRU, you can use stacked gru
-    # query_l1 = add_layer(query_batch, TRIGRAM_D, L1_N, activation_function=None)  # tf.nn.relu()
-    # doc_positive_l1 = add_layer(doc_positive_batch, TRIGRAM_D, L1_N, activation_function=None)
-    # doc_negative_l1 = add_layer(doc_negative_batch, TRIGRAM_D, L1_N, activation_function=None)
+    # query_l1 = add_layer(query_batch, conf.word_dim, L1_N, activation_function=None)  # tf.nn.relu()
+    # doc_positive_l1 = add_layer(doc_positive_batch, conf.word_dim, L1_N, activation_function=None)
+    # doc_negative_l1 = add_layer(doc_negative_batch, conf.word_dim, L1_N, activation_function=None)
     if conf.use_stack_rnn:
-        cell_fw = tf.contrib.rnn.GRUCell(conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
-        stacked_gru_fw = tf.contrib.rnn.MultiRNNCell([cell_fw], state_is_tuple=True)
-        cell_bw = tf.contrib.rnn.GRUCell(conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
-        stacked_gru_bw = tf.contrib.rnn.MultiRNNCell([cell_fw], state_is_tuple=True)
-        (output_fw, output_bw), (_, _) = tf.nn.bidirectional_dynamic_rnn(stacked_gru_fw, stacked_gru_bw)
+        cell_fw = tf.contrib.rnn.GRUCell(
+            conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
+        stacked_gru_fw = tf.contrib.rnn.MultiRNNCell(
+            [cell_fw], state_is_tuple=True)
+        cell_bw = tf.contrib.rnn.GRUCell(
+            conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
+        stacked_gru_bw = tf.contrib.rnn.MultiRNNCell(
+            [cell_fw], state_is_tuple=True)
+        (output_fw, output_bw), (_, _) = tf.nn.bidirectional_dynamic_rnn(
+            stacked_gru_fw, stacked_gru_bw)
         # not ready, to be continue ...
     else:
-        cell_fw = tf.contrib.rnn.GRUCell(conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
-        cell_bw = tf.contrib.rnn.GRUCell(conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
+        cell_fw = tf.contrib.rnn.GRUCell(
+            conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
+        cell_bw = tf.contrib.rnn.GRUCell(
+            conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
         # query
         (_, _), (query_output_fw, query_output_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, query_embed,
                                                                                      sequence_length=query_seq_length,
                                                                                      dtype=tf.float32)
-        query_rnn_output = tf.concat([query_output_fw, query_output_bw], axis=-1)
-        query_rnn_output = tf.nn.dropout(query_rnn_output, drop_out_prob)
+        query_rnn_output = tf.concat(
+            [query_output_fw, query_output_bw], axis=-1)
+        query_rnn_output = tf.nn.dropout(query_rnn_output, keep_prob_place)
         # doc_pos
-        (_, _), (doc_pos_output_fw, doc_pos_output_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw,
-                                                                                         doc_pos_embed,
-                                                                                         sequence_length=pos_seq_length,
-                                                                                         dtype=tf.float32)
-        doc_pos_rnn_output = tf.concat([doc_pos_output_fw, doc_pos_output_bw], axis=-1)
-        doc_pos_rnn_output = tf.nn.dropout(doc_pos_rnn_output, drop_out_prob)
-        # doc_neg
-        (_, _), (doc_neg_output_fw, doc_neg_output_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw,
-                                                                                         doc_neg_embed,
-                                                                                         sequence_length=neg_seq_length,
-                                                                                         dtype=tf.float32)
-        doc_neg_rnn_output = tf.concat([doc_neg_output_fw, doc_neg_output_bw], axis=-1)
-        doc_neg_rnn_output = tf.nn.dropout(doc_neg_rnn_output, drop_out_prob)
-
-with tf.name_scope('Merge_Negative_Doc'):
-    # 合并负样本，tile可选择是否扩展负样本。
-    # doc_y = tf.tile(doc_positive_y, [1, 1])
-    doc_y = tf.tile(doc_pos_rnn_output, [1, 1])
-
-    for i in range(NEG):
-        for j in range(query_BS):
-            # slice(input_, begin, size)切片API
-            # doc_y = tf.concat([doc_y, tf.slice(doc_negative_y, [j * NEG + i, 0], [1, -1])], 0)
-            doc_y = tf.concat([doc_y, tf.slice(doc_neg_rnn_output, [j * NEG + i, 0], [1, -1])], 0)
+        (_, _), (doc_output_fw, doc_output_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw,
+                                                                                 doc_embed,
+                                                                                 sequence_length=doc_seq_length,
+                                                                                 dtype=tf.float32)
+        doc_rnn_output = tf.concat([doc_output_fw, doc_output_bw], axis=-1)
+        doc_rnn_output = tf.nn.dropout(doc_rnn_output, keep_prob_place)
 
 with tf.name_scope('Cosine_Similarity'):
     # Cosine similarity
     # query_norm = sqrt(sum(each x^2))
-    query_norm = tf.tile(tf.sqrt(tf.reduce_sum(tf.square(query_rnn_output), 1, True)), [NEG + 1, 1])
+    query_norm = tf.sqrt(tf.reduce_sum(tf.square(query_rnn_output), 1))
     # doc_norm = sqrt(sum(each x^2))
-    doc_norm = tf.sqrt(tf.reduce_sum(tf.square(doc_y), 1, True))
+    doc_norm = tf.sqrt(tf.reduce_sum(tf.square(doc_rnn_output), 1))
 
-    prod = tf.reduce_sum(tf.multiply(tf.tile(query_rnn_output, [NEG + 1, 1]), doc_y), 1, True)
-    norm_prod = tf.multiply(query_norm, doc_norm)
+    # 内积
+    prod = tf.multiply(query_norm, doc_norm)
+    # prod = tf.reduce_sum(tmp, 1)
 
     # cos_sim_raw = query * doc / (||query|| * ||doc||)
-    cos_sim_raw = tf.truediv(prod, norm_prod)
-    # gamma = 20
-    cos_sim = tf.transpose(tf.reshape(tf.transpose(cos_sim_raw), [NEG + 1, query_BS])) * 20
+    cos_sim_raw = tf.truediv(prod, tf.multiply(query_norm, doc_norm))
+    predict_prob = tf.sigmoid(cos_sim_raw)
+    predict_idx = tf.cast(tf.greater_equal(predict_prob, 0.5), tf.int32)
 
 with tf.name_scope('Loss'):
     # Train Loss
-    # 转化为softmax概率矩阵。
-    prob = tf.nn.softmax(cos_sim)
-    # 只取第一列，即正样本列概率。
-    hit_prob = tf.slice(prob, [0, 0], [-1, 1])
-    loss = -tf.reduce_sum(tf.log(hit_prob))
+    loss = tf.nn.sigmoid_cross_entropy_with_logits(
+        labels=sim_labels, logits=cos_sim_raw)
+    loss = tf.reduce_mean(loss)
     tf.summary.scalar('loss', loss)
 
 with tf.name_scope('Training'):
@@ -156,78 +150,66 @@ with tf.name_scope('Test'):
 
 with tf.name_scope('Train'):
     train_average_loss = tf.placeholder(tf.float32)
-    train_loss_summary = tf.summary.scalar('train_average_loss', train_average_loss)
+    train_loss_summary = tf.summary.scalar(
+        'train_batch_loss', train_average_loss)
 
 
-def pull_batch(data_map, batch_id):
-    query_in = data_map['query'][batch_id * query_BS:(batch_id + 1) * query_BS]
-    query_len = data_map['query_len'][batch_id * query_BS:(batch_id + 1) * query_BS]
-    doc_positive_in = data_map['doc_pos'][batch_id * query_BS:(batch_id + 1) * query_BS]
-    doc_positive_len = data_map['doc_pos_len'][batch_id * query_BS:(batch_id + 1) * query_BS]
-    doc_negative_in = data_map['doc_neg'][batch_id * query_BS * NEG:(batch_id + 1) * query_BS * NEG]
-    doc_negative_len = data_map['doc_neg_len'][batch_id * query_BS * NEG:(batch_id + 1) * query_BS * NEG]
+def feed_batch(t1_ids, t1_len, t2_ids, t2_len, label=None, is_test=0):
+    keep_porb = 1 if is_test else conf.keep_porb
+    fd = {
+        query_batch: t1_ids, doc_batch: t2_ids, query_seq_length: t1_len,
+        doc_seq_length: t2_len, sim_labels: label,
+        keep_prob_place: keep_porb}
+    if label:
+        fd[sim_labels] = label
+    return fd
 
-    # query_in, doc_positive_in, doc_negative_in = pull_all(query_in, doc_positive_in, doc_negative_in)
-    return query_in, doc_positive_in, doc_negative_in, query_len, doc_positive_len, doc_negative_len
 
-
-def feed_dict(on_training, data_set, batch_id, drop_prob):
-    query_in, doc_positive_in, doc_negative_in, query_seq_len, pos_seq_len, neg_seq_len = pull_batch(data_set,
-                                                                                                     batch_id)
-    query_len = len(query_in)
-    query_seq_len = [conf.max_seq_len] * query_len
-    pos_seq_len = [conf.max_seq_len] * query_len
-    neg_seq_len = [conf.max_seq_len] * query_len * NEG
-    return {query_batch: query_in, doc_pos_batch: doc_positive_in, doc_neg_batch: doc_negative_in,
-            on_train: on_training, drop_out_prob: drop_prob, query_seq_length: query_seq_len,
-            neg_seq_length: neg_seq_len, pos_seq_length: pos_seq_len}
-
+def eval(sess, test_data):
+    pbar = tqdm(data_input.get_batch(
+        test_data, batch_size=conf.batch_size, is_test=1))
+    val_label, val_pred = [], []
+    for (t1_ids, t1_len, t2_ids, t2_len, label) in pbar:
+        val_label.extend(label)
+        pred_labels = sess.run(predict_idx, feed_dict=feed_batch(
+            t1_ids, t1_len, t2_ids, t2_len))
+        val_pred.extend(pred_labels)
+    test_acc = accuracy_score(val_label, val_pred)
+    print("dev set acc:", test_acc)
+    return test_acc
 
 # config = tf.ConfigProto()  # log_device_placement=True)
 # config.gpu_options.allow_growth = True
 # if not config.gpu:
 # config = tf.ConfigProto(device_count= {'GPU' : 0})
 
+
 # 创建一个Saver对象，选择性保存变量或者模型。
 saver = tf.train.Saver()
 # with tf.Session(config=config) as sess:
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    train_writer = tf.summary.FileWriter(conf.summaries_dir + '/train', sess.graph)
-
+    train_writer = tf.summary.FileWriter(
+        conf.summaries_dir + '/train', sess.graph)
     start = time.time()
     for epoch in range(conf.num_epoch):
-        batch_ids = [i for i in range(train_epoch_steps)]
-        random.shuffle(batch_ids)
-        for batch_id in batch_ids:
-            # print(batch_id)
-            sess.run(train_step, feed_dict=feed_dict(True, data_train, batch_id, 0.5))
-        end = time.time()
-        # train loss
-        epoch_loss = 0
-        for i in range(train_epoch_steps):
-            loss_v = sess.run(loss, feed_dict=feed_dict(False, data_train, i, 1))
-            epoch_loss += loss_v
+        steps = int(math.ceil(float(len(data_train)) / conf.batch_size))
+        # 每个 epoch 分batch训练
+        pbar = tqdm(data_input.get_batch(
+            data_train, batch_size=conf.batch_size))
+        for i, (t1_ids, t1_len, t2_ids, t2_len, label) in enumerate(pbar):
+            fd = feed_batch(t1_ids, t1_len, t2_ids, t2_len, label)
+            # s = sess.run([query_norm, doc_norm, prod], feed_dict=fd)
+            _, cur_loss = sess.run([train_step, loss], feed_dict=fd)
+            pbar.set_description("Train loss:{};".format(cur_loss))
+            # train_loss = sess.run(train_loss_summary, feed_dict={train_average_loss: cur_loss})
+            # train_writer.add_summary(cur_loss, epoch * steps + i + 1)
+        # 训练完一个epoch之后，使用验证集评估，然后预测， 然后评估准确率
+        dev_acc = eval(sess, data_val)
 
-        epoch_loss /= (train_epoch_steps)
-        train_loss = sess.run(train_loss_summary, feed_dict={train_average_loss: epoch_loss})
-        train_writer.add_summary(train_loss, epoch + 1)
-        print("\nEpoch #%d | Train Loss: %-4.3f | PureTrainTime: %-3.3fs" %
-              (epoch, epoch_loss, end - start))
-
-        # test loss
-        start = time.time()
-        epoch_loss = 0
-        for i in range(vali_epoch_steps):
-            loss_v = sess.run(loss, feed_dict=feed_dict(False, data_vali, i, 1))
-            epoch_loss += loss_v
-        epoch_loss /= (vali_epoch_steps)
-        test_loss = sess.run(loss_summary, feed_dict={average_loss: epoch_loss})
-        train_writer.add_summary(test_loss, epoch + 1)
-        # test_writer.add_summary(test_loss, step + 1)
-        print("Epoch #%d | Test  Loss: %-4.3f | Calc_LossTime: %-3.3fs" %
-              (epoch, epoch_loss, start - end))
-
+    # test 模型的准确率
+    test_acc = eval(sess, data_test)
+    print("dev set acc:", test_acc)
     # 保存模型
     save_path = saver.save(sess, "model/model_1.ckpt")
     print("Model saved in file: ", save_path)

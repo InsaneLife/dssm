@@ -31,7 +31,7 @@ class Config(object):
     # file_vali = './data/oppo_round1_vali_20180929.mini'
     file_vali = './data/oppo_round1_vali_20180929.txt'
     file_train = file_vali
-    max_seq_len = 10
+    max_seq_len = 40
     hidden_size_rnn = 100
     use_stack_rnn = False
     learning_rate = 0.001
@@ -40,6 +40,8 @@ class Config(object):
     summaries_dir = './Summaries/'
     gpu = 0
     word_dim = 100
+    batch_size = 64
+    keep_porb = 0.5
 
 
 if __name__ == '__main__':

@@ -1,13 +1,37 @@
 #!/usr/bin/env python
 # encoding=utf-8
+from inspect import getblock
 import json
+
+from numpy.core.fromnumeric import mean
 from config import Config
 import numpy as np
 import paddlehub as hub
+import six
+import math
+import random
 
 # 配置文件
 conf = Config()
 
+def convert_to_unicode(text):
+    """Converts `text` to Unicode (if it's not already), assuming utf-8 input."""
+    if six.PY3:
+        if isinstance(text, str):
+            return text
+        elif isinstance(text, bytes):
+            return text.decode("utf-8", "ignore")
+        else:
+            raise ValueError("Unsupported string type: %s" % (type(text)))
+    elif six.PY2:
+        if isinstance(text, str):
+            return text.decode("utf-8", "ignore")
+        elif isinstance(text, unicode):
+            return text
+        else:
+            raise ValueError("Unsupported string type: %s" % (type(text)))
+    else:
+        raise ValueError("Not running on Python2 or Python 3?")
 
 def gen_word_set(file_path, out_path='./data/words.txt'):
     word_set = set()
@@ -127,14 +151,20 @@ def get_data_bow(file_path):
     return data_arr
 
 def trans_lcqmc(dataset):
-    out_arr =  []
+    """
+    最大长度
+    """
+    out_arr, text_len =  [], []
     for each in dataset:
         t1, t2, label = each.text_a, each.text_b, int(each.label)
-        t1_ids = convert_seq2bow(t1, conf.vocab_map)
-        t1_len = len(t1_ids)
-        t2_ids = convert_seq2bow(t2, conf.vocab_map)
-        t2_len = len(t2_ids)
-        out_arr.append([t1_ids, t2_ids, label])
+        t1_ids = convert_word2id(t1, conf.vocab_map)
+        t1_len = conf.max_seq_len if len(t1) > conf.max_seq_len else len(t1)
+        t2_ids = convert_word2id(t2, conf.vocab_map)
+        t2_len = conf.max_seq_len if len(t2) > conf.max_seq_len else len(t2)
+        out_arr.append([t1_ids, t1_len, t2_ids, t2_len, label])
+        text_len.extend([len(t1), len(t2)])
+        pass
+    print("max len", max(text_len), "avg len", mean(text_len), "cover rate:", np.mean([x <= conf.max_seq_len for x in text_len]))
     return out_arr
 
 def get_lcqmc():
@@ -147,6 +177,23 @@ def get_lcqmc():
     test_set = trans_lcqmc(dataset.test_examples)
     return train_set, dev_set, test_set
 
+
+def get_batch(dataset, batch_size=None, is_test=0):
+    # tf Dataset太难用，不如自己实现
+    # https://stackoverflow.com/questions/50539342/getting-batches-in-tensorflow
+    # dataset：每个元素是一个特征，[[x1, x2, x3,...], ...], 如果是测试集，可能就没有标签
+    if not batch_size:
+        batch_size = 32
+    if not is_test:
+        random.shuffle(dataset)
+    steps = int(math.ceil(float(len(dataset)) / batch_size))
+    for i in range(steps):
+        idx = i * batch_size
+        cur_set = dataset[idx: idx + batch_size]
+        cur_set = zip(*cur_set)
+        yield cur_set
+
+
 if __name__ == '__main__':
     # prefix, query_prediction, title, tag, label
     # query_prediction 为json格式。
@@ -155,5 +202,9 @@ if __name__ == '__main__':
     # data_train = get_data(file_train)
     # data_train = get_data(file_vali)
     # print(len(data_train['query']), len(data_train['doc_pos']), len(data_train['doc_neg']))
-    dataset = get_lcqmc()
+    # dataset = get_lcqmc()
+    # print(dataset[1][:3])
+    # for each in get_batch(dataset[1][:3], batch_size=2):
+    #     t1_ids, t1_len, t2_ids, t2_len, label = each
+    #     print(each)
     pass
