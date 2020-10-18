@@ -217,6 +217,7 @@ with tf.Session() as sess:
             # train_writer.add_summary(cur_loss, epoch * steps + i + 1)
         # 训练完一个epoch之后，使用验证集评估，然后预测， 然后评估准确率
         dev_acc = eval(sess, data_val)
+        test_acc = eval(sess, data_test)
 
     # test 模型的准确率
     test_acc = eval(sess, data_test)
