@@ -30,10 +30,11 @@ start = time.time()
 
 # 读取配置
 conf = Config()
-os.environ["CUDA_VISIBLE_DEVICES"] = 4
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 # 读取数据
 dataset = hub.dataset.LCQMC()
 data_train, data_val, data_test = data_input.get_lcqmc()
+# data_train = data_train[:100]
 print("train size:{},val size:{}, test size:{}".format(
     len(data_train), len(data_val), len(data_test)))
 
@@ -159,8 +160,7 @@ def feed_batch(t1_ids, t1_len, t2_ids, t2_len, label=None, is_test=0):
     keep_porb = 1 if is_test else conf.keep_porb
     fd = {
         query_batch: t1_ids, doc_batch: t2_ids, query_seq_length: t1_len,
-        doc_seq_length: t2_len, sim_labels: label,
-        keep_prob_place: keep_porb}
+        doc_seq_length: t2_len, keep_prob_place: keep_porb}
     if label:
         fd[sim_labels] = label
     return fd
@@ -172,8 +172,8 @@ def eval(sess, test_data):
     val_label, val_pred = [], []
     for (t1_ids, t1_len, t2_ids, t2_len, label) in pbar:
         val_label.extend(label)
-        pred_labels = sess.run(predict_idx, feed_dict=feed_batch(
-            t1_ids, t1_len, t2_ids, t2_len))
+        fd = feed_batch(t1_ids, t1_len, t2_ids, t2_len, is_test=1)
+        pred_labels = sess.run(predict_idx, feed_dict=fd)
         val_pred.extend(pred_labels)
     test_acc = accuracy_score(val_label, val_pred)
     print("dev set acc:", test_acc)
