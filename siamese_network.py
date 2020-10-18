@@ -30,6 +30,7 @@ start = time.time()
 
 # 读取配置
 conf = Config()
+os.environ["CUDA_VISIBLE_DEVICES"] = 4
 # 读取数据
 dataset = hub.dataset.LCQMC()
 data_train, data_val, data_test = data_input.get_lcqmc()
