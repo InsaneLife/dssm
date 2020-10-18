@@ -161,7 +161,9 @@ def trans_lcqmc(dataset):
         t1_len = conf.max_seq_len if len(t1) > conf.max_seq_len else len(t1)
         t2_ids = convert_word2id(t2, conf.vocab_map)
         t2_len = conf.max_seq_len if len(t2) > conf.max_seq_len else len(t2)
+        # t2_len = len(t2) 
         out_arr.append([t1_ids, t1_len, t2_ids, t2_len, label])
+        # out_arr.append([t1_ids, t1_len, t2_ids, t2_len, label, t1, t2])
         text_len.extend([len(t1), len(t2)])
         pass
     print("max len", max(text_len), "avg len", mean(text_len), "cover rate:", np.mean([x <= conf.max_seq_len for x in text_len]))
@@ -202,9 +204,9 @@ if __name__ == '__main__':
     # data_train = get_data(file_train)
     # data_train = get_data(file_vali)
     # print(len(data_train['query']), len(data_train['doc_pos']), len(data_train['doc_neg']))
-    # dataset = get_lcqmc()
-    # print(dataset[1][:3])
-    # for each in get_batch(dataset[1][:3], batch_size=2):
-    #     t1_ids, t1_len, t2_ids, t2_len, label = each
-    #     print(each)
+    dataset = get_lcqmc()
+    print(dataset[1][:3])
+    for each in get_batch(dataset[1][:3], batch_size=2):
+        t1_ids, t1_len, t2_ids, t2_len, label = each
+        print(each)
     pass

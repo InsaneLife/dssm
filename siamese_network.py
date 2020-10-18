@@ -34,10 +34,18 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 # 读取数据
 dataset = hub.dataset.LCQMC()
 data_train, data_val, data_test = data_input.get_lcqmc()
-# data_train = data_train[:100]
+# data_train = data_train[:10000]
 print("train size:{},val size:{}, test size:{}".format(
     len(data_train), len(data_val), len(data_test)))
 
+
+def cosine_similarity(a, b):
+    c = tf.sqrt(tf.reduce_sum(tf.multiply(a,a),axis=1))
+    d = tf.sqrt(tf.reduce_sum(tf.multiply(b,b),axis=1))
+    e = tf.reduce_sum(tf.multiply(a,b),axis=1)
+    f = tf.multiply(c,d)
+    r = tf.divide(e,f)
+    return r
 
 def variable_summaries(var, name):
     """Attach a lot of summaries to a Tensor."""
@@ -94,9 +102,9 @@ with tf.name_scope('RNN'):
         # not ready, to be continue ...
     else:
         cell_fw = tf.contrib.rnn.GRUCell(
-            conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
+            conf.hidden_size_rnn, reuse=tf.get_variable_scope().reuse)   # , reuse=tf.AUTO_REUSE
         cell_bw = tf.contrib.rnn.GRUCell(
-            conf.hidden_size_rnn, reuse=tf.AUTO_REUSE)
+            conf.hidden_size_rnn, reuse=tf.get_variable_scope().reuse)
         # query
         (_, _), (query_output_fw, query_output_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, query_embed,
                                                                                      sequence_length=query_seq_length,
@@ -120,11 +128,12 @@ with tf.name_scope('Cosine_Similarity'):
     doc_norm = tf.sqrt(tf.reduce_sum(tf.square(doc_rnn_output), 1))
 
     # 内积
-    prod = tf.multiply(query_norm, doc_norm)
-    # prod = tf.reduce_sum(tmp, 1)
-
+    prod = tf.reduce_sum(tf.multiply(query_rnn_output, doc_rnn_output), axis=1)
+    # 模相乘
+    mul = tf.multiply(query_norm, doc_norm)
     # cos_sim_raw = query * doc / (||query|| * ||doc||)
-    cos_sim_raw = tf.truediv(prod, tf.multiply(query_norm, doc_norm))
+    # cos_sim_raw = tf.truediv(prod, tf.multiply(query_norm, doc_norm))
+    cos_sim_raw = tf.divide(prod, mul)
     predict_prob = tf.sigmoid(cos_sim_raw)
     predict_idx = tf.cast(tf.greater_equal(predict_prob, 0.5), tf.int32)
 
@@ -173,7 +182,7 @@ def eval(sess, test_data):
     for (t1_ids, t1_len, t2_ids, t2_len, label) in pbar:
         val_label.extend(label)
         fd = feed_batch(t1_ids, t1_len, t2_ids, t2_len, is_test=1)
-        pred_labels = sess.run(predict_idx, feed_dict=fd)
+        pred_labels, pred_prob = sess.run([predict_idx, predict_prob], feed_dict=fd)
         val_pred.extend(pred_labels)
     test_acc = accuracy_score(val_label, val_pred)
     print("dev set acc:", test_acc)
@@ -194,13 +203,14 @@ with tf.Session() as sess:
         conf.summaries_dir + '/train', sess.graph)
     start = time.time()
     for epoch in range(conf.num_epoch):
+        random.shuffle(data_train)
         steps = int(math.ceil(float(len(data_train)) / conf.batch_size))
         # 每个 epoch 分batch训练
         pbar = tqdm(data_input.get_batch(
             data_train, batch_size=conf.batch_size))
         for i, (t1_ids, t1_len, t2_ids, t2_len, label) in enumerate(pbar):
             fd = feed_batch(t1_ids, t1_len, t2_ids, t2_len, label)
-            # s = sess.run([query_norm, doc_norm, prod], feed_dict=fd)
+            a = sess.run([query_norm, doc_norm, prod, cos_sim_raw], feed_dict=fd)
             _, cur_loss = sess.run([train_step, loss], feed_dict=fd)
             pbar.set_description("Train loss:{};".format(cur_loss))
             # train_loss = sess.run(train_loss_summary, feed_dict={train_average_loss: cur_loss})
