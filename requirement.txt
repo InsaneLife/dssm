@@ -1,4 +1,4 @@
 paddlepaddle==1.7.1
 paddlehub==1.8.2
-TensorFlow==1.12
+TensorFlow==1.14
 sklearn

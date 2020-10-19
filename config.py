@@ -34,7 +34,7 @@ class Config(object):
     max_seq_len = 40
     hidden_size_rnn = 100
     use_stack_rnn = False
-    learning_rate = 0.0001
+    learning_rate = 0.001
     # max_steps = 8000
     num_epoch = 300
     summaries_dir = './Summaries/'

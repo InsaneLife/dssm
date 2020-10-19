@@ -145,8 +145,15 @@ with tf.name_scope('Loss'):
     tf.summary.scalar('loss', loss)
 
 with tf.name_scope('Training'):
+    global_step = tf.Variable(0, trainable=False)
+    learning_rate = tf.train.exponential_decay(conf.learning_rate, global_step,
+                                               2000, 0.95)
     # Optimizer
-    train_step = tf.train.AdamOptimizer(conf.learning_rate).minimize(loss)
+    optimizer = tf.contrib.opt.LazyAdamOptimizer(learning_rate,beta1=0.9,beta2=0.999,epsilon=1e-8)
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+    with tf.control_dependencies(update_ops):
+        train_step = optimizer.minimize(loss, global_step=global_step)
+    # train_step = opt.minimize(loss)
 
 # with tf.name_scope('Accuracy'):
 #     correct_prediction = tf.equal(tf.argmax(prob, 1), 0)
@@ -205,14 +212,14 @@ with tf.Session() as sess:
     for epoch in range(conf.num_epoch):
         random.shuffle(data_train)
         steps = int(math.ceil(float(len(data_train)) / conf.batch_size))
+        progbar = tf.keras.utils.Progbar(steps)
         # 每个 epoch 分batch训练
-        pbar = tqdm(data_input.get_batch(
-            data_train, batch_size=conf.batch_size))
-        for i, (t1_ids, t1_len, t2_ids, t2_len, label) in enumerate(pbar):
+        batch_iter = data_input.get_batch(data_train, batch_size=conf.batch_size)
+        for i, (t1_ids, t1_len, t2_ids, t2_len, label) in enumerate(batch_iter):
             fd = feed_batch(t1_ids, t1_len, t2_ids, t2_len, label)
             # a = sess.run([query_norm, doc_norm, prod, cos_sim_raw], feed_dict=fd)
             _, cur_loss = sess.run([train_step, loss], feed_dict=fd)
-            pbar.set_description("Train loss:{};".format(cur_loss))
+            progbar.update(i + 1, [("loss", cur_loss)])
             # train_loss = sess.run(train_loss_summary, feed_dict={train_average_loss: cur_loss})
             # train_writer.add_summary(cur_loss, epoch * steps + i + 1)
         # 训练完一个epoch之后，使用验证集评估，然后预测， 然后评估准确率
