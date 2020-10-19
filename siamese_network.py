@@ -192,7 +192,6 @@ def eval(sess, test_data):
         pred_labels, pred_prob = sess.run([predict_idx, predict_prob], feed_dict=fd)
         val_pred.extend(pred_labels)
     test_acc = accuracy_score(val_label, val_pred)
-    print("dev set acc:", test_acc)
     return test_acc
 
 # config = tf.ConfigProto()  # log_device_placement=True)
@@ -224,11 +223,13 @@ with tf.Session() as sess:
             # train_writer.add_summary(cur_loss, epoch * steps + i + 1)
         # 训练完一个epoch之后，使用验证集评估，然后预测， 然后评估准确率
         dev_acc = eval(sess, data_val)
+        print("dev set acc:", dev_acc)
         test_acc = eval(sess, data_test)
+        print("test_acc set acc:", test_acc)
 
     # test 模型的准确率
     test_acc = eval(sess, data_test)
-    print("dev set acc:", test_acc)
+    print("test set acc:", test_acc)
     # 保存模型
     save_path = saver.save(sess, "model/model_1.ckpt")
     print("Model saved in file: ", save_path)
