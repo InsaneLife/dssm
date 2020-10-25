@@ -7,7 +7,7 @@
 **\*\*\*\*2020/10/17\*\*\*\***
 
 <br>
-由于之前数据集问题，会有不收敛问题，现更换数据集为LCQMC口语化描述的语义相似度数据集。模型也从多塔变成了双塔模型，见[siamese\_network.py](https://github.com/InsaneLife/dssm/blob/master/siamese_network.py)
+由于之前数据集问题，会有不收敛问题，现更换数据集为LCQMC口语化描述的语义相似度数据集。模型也从多塔变成了双塔模型，见[siamese\_network.py](https://github.com/InsaneLife/dssm/blob/master/model/siamese_network.py), 训练入口：[train.py](https://github.com/InsaneLife/dssm/blob/master/train.py)
 
 > 难以找到搜索点击的公开数据集，暂且用语义相似任务数据集，有点变味了，哈哈
 
