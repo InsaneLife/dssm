@@ -5,7 +5,7 @@ data/*
 Summaries/
 
 Summaries/*
-model/*
+weights/*
 
 # py
 test.py
@@ -14,3 +14,6 @@ test.py
 envi/
 __pycache__/
 .vscode/
+*.pyc
+.DS_Store
+*.DS_Store

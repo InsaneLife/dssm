@@ -4,7 +4,8 @@
 @Time    :   2020/10/17 11:38:00
 @Author  :   zhiyang.zzy 
 @Contact :   zhiyangchou@gmail.com
-@Desc    :   1. 使用预训练词向量。2. 使用lcqmc数据集实验，
+@Desc    :   siamense network, 使用曼哈顿距离、cos相似度进行实验。
+1. 使用预训练词向量。2. 使用lcqmc数据集实验，
 '''
 
 # here put the import lib
