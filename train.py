@@ -30,7 +30,7 @@ def train_siamese():
     print("train size:{},val size:{}, test size:{}".format(
         len(data_train), len(data_val), len(data_test)))
     model = SiamenseRNN(cfg)
-    model.fit(data_val, data_val, data_test)
+    model.fit(data_train, data_val, data_test)
     pass
 
 if __name__ == "__main__":
