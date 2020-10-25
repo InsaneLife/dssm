@@ -11,7 +11,8 @@
 import os
 import time
 import yaml
-
+import logging
+logging.basicConfig(level=logging.INFO)
 import data_input
 from config import Config
 from model.siamese_network import SiamenseRNN
@@ -29,7 +30,7 @@ def train_siamese():
     print("train size:{},val size:{}, test size:{}".format(
         len(data_train), len(data_val), len(data_test)))
     model = SiamenseRNN(cfg)
-    model.fit(data_train, data_val, data_test)
+    model.fit(data_val, data_val, data_test)
     pass
 
 if __name__ == "__main__":

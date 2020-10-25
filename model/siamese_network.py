@@ -158,14 +158,14 @@ class SiamenseRNN(BaseModel):
         return fd
 
 
-    def eval(self, sess, test_data):
+    def eval(self, test_data):
         pbar = data_input.get_batch(
             test_data, batch_size=self.cfg['batch_size'], is_test=1)
         val_label, val_pred = [], []
         for (t1_ids, t1_len, t2_ids, t2_len, label) in pbar:
             val_label.extend(label)
             fd = self.feed_batch(t1_ids, t1_len, t2_ids, t2_len, is_test=1)
-            pred_labels, pred_prob = sess.run([self.predict_idx, self.predict_prob], feed_dict=fd)
+            pred_labels, pred_prob = self.sess.run([self.predict_idx, self.predict_prob], feed_dict=fd)
             val_pred.extend(pred_labels)
         test_acc = accuracy_score(val_label, val_pred)
         return test_acc
@@ -181,7 +181,7 @@ class SiamenseRNN(BaseModel):
             _, cur_loss = self.sess.run([self.train_op, self.loss], feed_dict=fd)
             progbar.update(i + 1, [("loss", cur_loss)])
         # 训练完一个epoch之后，使用验证集评估，然后预测， 然后评估准确率
-        dev_acc = self.eval(self.sess, data_val)
+        dev_acc = self.eval(data_val)
         print("dev set acc:", dev_acc)
         return dev_acc
 

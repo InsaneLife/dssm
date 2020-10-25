@@ -90,7 +90,7 @@ class BaseModel(object):
                 best_score = score
                 logging.info("- new best score!")
                 if test:
-                    test_acc = self.evaluate(test)
+                    test_acc = self.eval(test)
                     # self.print_eval_result(test_result)
                     logging.info("test sf acc:{}".format(test_acc))
             else:
@@ -101,7 +101,7 @@ class BaseModel(object):
             pass
         pass
 
-    def evaluate(self, test):
+    def eval(self, test):
         '''
         @description: 测试集评测
         @param {type} 
