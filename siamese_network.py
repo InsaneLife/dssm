@@ -33,7 +33,6 @@ start = time.time()
 conf = Config()
 os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 # 读取数据
-dataset = hub.dataset.LCQMC()
 data_train, data_val, data_test = data_input.get_lcqmc()
 # data_train = data_train[:10000]
 print("train size:{},val size:{}, test size:{}".format(
@@ -194,12 +193,6 @@ def eval(sess, test_data):
         val_pred.extend(pred_labels)
     test_acc = accuracy_score(val_label, val_pred)
     return test_acc
-
-# config = tf.ConfigProto()  # log_device_placement=True)
-# config.gpu_options.allow_growth = True
-# if not config.gpu:
-# config = tf.ConfigProto(device_count= {'GPU' : 0})
-
 
 # 创建一个Saver对象，选择性保存变量或者模型。
 saver = tf.train.Saver()

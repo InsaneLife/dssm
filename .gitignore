@@ -5,7 +5,7 @@ data/*
 Summaries/
 
 Summaries/*
-weights/*
+results/*
 
 # py
 test.py

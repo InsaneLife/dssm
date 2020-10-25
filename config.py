@@ -35,13 +35,20 @@ class Config(object):
     hidden_size_rnn = 100
     use_stack_rnn = False
     learning_rate = 0.001
-    # max_steps = 8000
+    decay_step = 2000
+    lr_decay = 0.95
     num_epoch = 300
-    summaries_dir = './Summaries/'
+    epoch_no_imprv = 5
+    optimizer = "lazyadam"
+    summaries_dir = './results/Summaries/'
     gpu = 0
     word_dim = 100
     batch_size = 64
     keep_porb = 0.5
+    dropout = 1- keep_porb
+
+    # checkpoint_dir
+    checkpoint_dir='./results/checkpoint'
 
 
 if __name__ == '__main__':

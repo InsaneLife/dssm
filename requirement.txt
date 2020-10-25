@@ -1,4 +1,6 @@
 paddlepaddle==1.7.1
 paddlehub==1.8.2
-TensorFlow==1.14
+TensorFlow==1.12
 sklearn
+pyyaml
+keras==2.2.5

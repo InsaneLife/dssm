@@ -284,33 +284,19 @@ class BaseModel(object):
                         atrous_input = conv_output
             output = tf.concat(axis=3, values=atrous_layers_output)
             return tf.squeeze(output, [1])
-    
-    def _get_optimizer(self, method):
-        learning_rate = tf.train.exponential_decay(learning_rate=self.cfg['learning_rate'],
-                                                   global_step=tf.train.get_or_create_global_step(),
-                                                   decay_steps=self.cfg['decay_step'],
-                                                   decay_rate=self.cfg['lr_decay'])
-        tf.summary.scalar("learning_rate", learning_rate)
-        if method == "adam":
-            return tf.train.AdamOptimizer(learning_rate=learning_rate)
-        elif method == "adagrad":
-            return tf.train.AdagradOptimizer(learning_rate=learning_rate, initial_accumulator_value=1E-8)
-        elif method == "sgd":
-            return tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
-        elif method == "rmsprop":
-            return tf.train.RMSPropOptimizer(learning_rate=learning_rate)
-        else:
-            raise NotImplementedError("Unknown Optimizer Method {}".format(method))
+
     def add_train_op(self, learning_method, learning_rate, loss, clip=-1):
         learning_rate = tf.train.exponential_decay(learning_rate=learning_rate,
                                                    global_step=tf.train.get_or_create_global_step(),
-                                                   decay_steps=1725,
-                                                   decay_rate=0.95)
+                                                   decay_steps=self.cfg['decay_step'],
+                                                   decay_rate=self.cfg['lr_decay'])
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         _lr_m = learning_method.lower()
         with tf.variable_scope("train_step"):
             if _lr_m == "adam":
                 optimizer = tf.train.AdamOptimizer(learning_rate)
+            elif _lr_m == 'lazyadam':
+                optimizer = tf.contrib.opt.LazyAdamOptimizer(learning_rate,beta1=0.9,beta2=0.999,epsilon=1e-8)
             elif _lr_m == "adagrad":
                 optimizer = tf.train.AdagradOptimizer(learning_rate)
             elif _lr_m == "sgd":
