@@ -6,6 +6,7 @@ Summaries/
 
 Summaries/*
 results/*
+log
 
 # py
 test.py

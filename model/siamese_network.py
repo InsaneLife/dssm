@@ -107,29 +107,19 @@ class SiamenseRNN(BaseModel):
         l1_distance_layer = Lambda(lambda tensors: K.abs(tensors[0] - tensors[1]))
         l1_distance = l1_distance_layer([query_rnn_output, doc_rnn_output])
         predict_prob = Dense(units=1, activation='sigmoid')(l1_distance)
+        # bs * 1
+        predict_prob = tf.reshape(predict_prob, [-1])
         predict_idx = tf.cast(tf.greater_equal(predict_prob, 0.5), tf.int32)
         return predict_prob, predict_idx
 
     def forward(self):
-        with tf.name_scope('input'):
-            # 预测时只用输入query即可，将其embedding为向量。
-            self.query_batch = tf.placeholder(
-                tf.int32, shape=[None, None], name='query_batch')
-            self.doc_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_batch')
-            self.query_seq_length = tf.placeholder(
-                tf.int32, shape=[None], name='query_sequence_length')
-            self.doc_seq_length = tf.placeholder(
-                tf.int32, shape=[None], name='doc_seq_length')
-            # label
-            self.sim_labels = tf.placeholder(tf.float32, shape=[None], name="sim_labels")
-            self.keep_prob_place = tf.placeholder(tf.float32, name='keep_prob')
         # 共享的encode来编码query
         query_rnn_output = self.share_encoder(self.query_batch, self.query_seq_length, self.keep_prob_place)
         doc_rnn_output = self.share_encoder(self.doc_batch, self.doc_seq_length, self.keep_prob_place)
         # 计算cos相似度：
-        self.predict_prob, self.predict_idx = self.cos_sim(query_rnn_output, doc_rnn_output)
+        # self.predict_prob, self.predict_idx = self.cos_sim(query_rnn_output, doc_rnn_output)
         # 使用原文曼哈顿距离
-        # self.predict_prob, self.predict_idx = self.l1_distance(query_rnn_output, doc_rnn_output)
+        self.predict_prob, self.predict_idx = self.l1_distance(query_rnn_output, doc_rnn_output)
 
         with tf.name_scope('Loss'):
             # Train Loss
@@ -142,7 +132,22 @@ class SiamenseRNN(BaseModel):
         #     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         #     tf.summary.scalar('accuracy', accuracy)
 
+    def add_placeholder(self):
+        with tf.name_scope('input'):
+            # 预测时只用输入query即可，将其embedding为向量。
+            self.query_batch = tf.placeholder(
+                tf.int32, shape=[None, None], name='query_batch')
+            self.doc_batch = tf.placeholder(tf.int32, shape=[None, None], name='doc_batch')
+            self.query_seq_length = tf.placeholder(
+                tf.int32, shape=[None], name='query_sequence_length')
+            self.doc_seq_length = tf.placeholder(
+                tf.int32, shape=[None], name='doc_seq_length')
+            # label
+            self.sim_labels = tf.placeholder(tf.float32, shape=[None], name="sim_labels")
+            self.keep_prob_place = tf.placeholder(tf.float32, name='keep_prob')
+
     def build(self):
+        self.add_placeholder()
         self.forward()
         self.add_train_op(self.cfg['optimizer'], self.cfg['learning_rate'], self.loss)
         self._init_session()
@@ -184,6 +189,25 @@ class SiamenseRNN(BaseModel):
         dev_acc = self.eval(data_val)
         print("dev set acc:", dev_acc)
         return dev_acc
+
+
+class SiamenseBert(SiamenseRNN):
+    def __init__(self, cfg, is_training=1):
+        # config来自于yml, 或者config.py 文件。
+        self.cfg = cfg
+        # if not is_training: dropout=0
+        self.is_training = is_training
+        if not is_training:
+            self.cfg['dropout'] = 0
+        self.build()
+        pass
+    pass
+    def build(self):
+            self.forward()
+            self.add_train_op(self.cfg['optimizer'], self.cfg['learning_rate'], self.loss)
+            self._init_session()
+            self._add_summary()
+            pass
 
 if __name__ == "__main__":
     start = time.time()
