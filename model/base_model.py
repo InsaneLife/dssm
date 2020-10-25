@@ -53,9 +53,9 @@ class BaseModel(object):
 
     def _add_summary(self):
         self.merged = tf.summary.merge_all()
-        if not os.path.exists(self.cfg['checkpoint_dir']):
-            os.makedirs(self.cfg['checkpoint_dir'])
-        self.file_writer = tf.summary.FileWriter(self.cfg['checkpoint_dir'], self.sess.graph)
+        if not os.path.exists(self.cfg['summaries_dir']):
+            os.makedirs(self.cfg['summaries_dir'])
+        self.file_writer = tf.summary.FileWriter(self.cfg['summaries_dir'], self.sess.graph)
 
     def save_session(self):
         if not os.path.exists(self.cfg['checkpoint_dir']):

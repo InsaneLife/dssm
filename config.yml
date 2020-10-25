@@ -5,7 +5,7 @@ max_seq_len: 40
 hidden_size_rnn: 100
 use_stack_rnn: False
 learning_rate: 0.001
-decay_step: 2000
+decay_step: 3731
 lr_decay: 0.95
 num_epoch: 300
 epoch_no_imprv: 5
@@ -16,5 +16,5 @@ word_dim: 100
 batch_size: 64
 keep_porb: 0.5
 # checkpoint_dir
-checkpoint_dir: './results/checkpoint'
+checkpoint_dir: './results/checkpoint/model'
 nwords: 21128
