@@ -16,11 +16,9 @@ import numpy as np
 import tensorflow as tf
 import random
 import paddlehub as hub
-from tqdm import tqdm
-import math
 from sklearn.metrics import accuracy_score
 import os
-from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Input, Subtract, Lambda
+from keras.layers import Dense, Subtract, Lambda
 import keras.backend as K
 from keras.regularizers import l2
 
