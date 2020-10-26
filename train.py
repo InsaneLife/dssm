@@ -26,7 +26,7 @@ from util import write_file
 def train_siamese():
     # 读取配置
     # conf = Config()
-    cfg_path = "./config.yml"
+    cfg_path = "./configs/config.yml"
     cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     # 读取数据
@@ -40,7 +40,7 @@ def train_siamese():
 
 def predict_siamese(file_='./results/'):
     # 加载配置
-    cfg_path = "./config.yml"
+    cfg_path = "./configs/config.yml"
     cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     # 将 seq转为id，
@@ -57,7 +57,7 @@ def predict_siamese(file_='./results/'):
 def train_siamese_bert():
     # 读取配置
     # conf = Config()
-    cfg_path = "./config.yml"
+    cfg_path = "./configs/config_bert.yml"
     cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     # vocab: 将 seq转为id，

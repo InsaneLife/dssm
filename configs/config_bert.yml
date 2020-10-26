@@ -1,0 +1,27 @@
+unk: '[UNK]'
+pad: '[PAD]'
+vocab_path: './data/vocab.txt'
+max_seq_len: 40
+hidden_size_rnn: 200
+use_stack_rnn: False
+learning_rate: 0.0005
+decay_step: 1800
+lr_decay: 0.95
+num_epoch: 10
+epoch_no_imprv: 10
+optimizer: "lazyadam"
+summaries_dir: './results/Summaries/'
+gpu: 0
+word_dim: 100
+batch_size: 5
+keep_porb: 0.5
+# checkpoint_dir
+checkpoint_dir: './results/checkpoint/bert/model'
+nwords: 21128
+
+# bert
+# bert_dir: &bert_dir '/mnt/nlp/bert/chinese_L-12_H-768_A-12/'
+bert_dir: '/Volumes/HddData/ProjectData/NLP/bert/chinese_L-12_H-768_A-12/'
+bert_init_checkpoint: "bert_model.ckpt"
+bert_vocab: "vocab.txt"
+bert_config: "bert_config.json"

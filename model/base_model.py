@@ -225,7 +225,8 @@ class BaseModel(object):
             input_ids=query_ids,
             input_mask=mask_ids,
             token_type_ids=seg_ids,
-            use_one_hot_embeddings=False)
+            use_one_hot_embeddings=False,
+            scope="bert")
         if use_bert_pre:
             tvars = tf.trainable_variables()
             bert_init_dir = self.cfg["bert_dir"] + self.cfg["bert_init_checkpoint"]

@@ -254,9 +254,9 @@ class SiamenseBert(SiamenseRNN):
     def forward(self):
         # 获取cls的输出
         q_emb, _, self.q_e = self.share_bert_layer(
-            self.is_train_place, self.q_ids, self.q_mask_ids, self.q_seg_ids, use_bert_pre=0)
+            self.is_train_place, self.q_ids, self.q_mask_ids, self.q_seg_ids, use_bert_pre=1)
         d_emb, _, self.d_e = self.share_bert_layer(
-            self.is_train_place, self.d_ids, self.d_mask_ids, self.d_seg_ids, use_bert_pre=0)
+            self.is_train_place, self.d_ids, self.d_mask_ids, self.d_seg_ids, use_bert_pre=1)
         # 计算cos相似度：
         # self.predict_prob, self.predict_idx = self.cos_sim(q_emb, d_emb)
         # 使用原文曼哈顿距离

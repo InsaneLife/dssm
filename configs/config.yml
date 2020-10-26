@@ -13,7 +13,7 @@ optimizer: "lazyadam"
 summaries_dir: './results/Summaries/'
 gpu: 0
 word_dim: 100
-batch_size: 5
+batch_size: 128
 keep_porb: 0.5
 # checkpoint_dir
 checkpoint_dir: './results/checkpoint/bert/model'
