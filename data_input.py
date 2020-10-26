@@ -297,11 +297,11 @@ def get_lcqmc_bert(vocab:Vocabulary):
     使用LCQMC数据集，并将其转为word_id
     """
     dataset = hub.dataset.LCQMC()
-    # train_set = trans_lcqmc_bert(dataset.train_examples, vocab)
-    # dev_set = trans_lcqmc_bert(dataset.dev_examples, vocab)
+    train_set = trans_lcqmc_bert(dataset.train_examples, vocab)
+    dev_set = trans_lcqmc_bert(dataset.dev_examples, vocab)
     test_set = trans_lcqmc_bert(dataset.test_examples, vocab)
-    # return train_set, dev_set, test_set
-    return test_set, test_set, test_set
+    return train_set, dev_set, test_set
+    # return test_set, test_set, test_set
 
 def get_test(file_:str, vocab:Vocabulary):
     test_arr = read_file(file_, '\t') # [[q1, q2],...]
