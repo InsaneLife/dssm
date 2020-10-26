@@ -17,7 +17,7 @@
 python train.py --mode=train
 ```
 
-测试：
+预测：
 
 ```shell
 python train.py --mode=train --file=$predict_file$
