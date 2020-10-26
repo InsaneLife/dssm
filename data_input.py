@@ -2,17 +2,116 @@
 # encoding=utf-8
 from inspect import getblock
 import json
-
+import os
+from os import read
 from numpy.core.fromnumeric import mean
-from config import Config
 import numpy as np
 import paddlehub as hub
 import six
 import math
 import random
-
+import sys
+from util import read_file
+from config import Config
 # 配置文件
 conf = Config()
+
+
+class Vocabulary(object):
+    def __init__(self, meta_file, max_len, allow_unk=0, unk="$UNK$", pad="$PAD$",):
+        self.voc2id = {}
+        self.id2voc = {}
+        self.unk = unk
+        self.pad = pad
+        self.max_len = max_len
+        self.allow_unk = allow_unk
+        with open(meta_file, encoding='utf-8') as f:
+            for i, line in enumerate(f):
+                line = convert_to_unicode(line.strip("\n"))
+                self.voc2id[line] = i
+                self.id2voc[i] = line
+        self.size = len(self.voc2id)
+        self.oov_num = self.size + 1
+
+    def fit(self, words_list):
+        """
+        :param words_list: [[w11, w12, ...], [w21, w22, ...], ...]
+        :return:
+        """
+        word_lst = []
+        word_lst_append = word_lst.append
+        for words in words_list:
+            if not isinstance(words, list):
+                print(words)
+                continue
+            for word in words:
+                word = convert_to_unicode(word)
+                word_lst_append(word)
+        word_counts = Counter(word_lst)
+        if self.max_num_word < 0:
+            self.max_num_word = len(word_counts)
+        sorted_voc = [w for w, c in word_counts.most_common(self.max_num_word)]
+        self.max_num_word = len(sorted_voc)
+        self.oov_index = self.max_num_word + 1
+        self.voc2id = dict(zip(sorted_voc, range(1, self.max_num_word + 1)))
+        return self
+
+    def _transform2id(self, word):
+        word = convert_to_unicode(word)
+        if word in self.voc2id:
+            return self.voc2id[word]
+        elif self.allow_unk:
+            return self.voc2id[self.unk]
+        else:
+            print(word)
+            raise ValueError("word:{} Not in voc2id, please check".format(word))
+
+    def _transform_seq2id(self, words, padding=0):
+        out_ids = []
+        words = convert_to_unicode(words)
+        if self.max_len:
+            words = words[:self.max_len]
+        for w in words:
+            out_ids.append(self._transform2id(w))
+        if padding and self.max_len:
+            while len(out_ids) < self.max_len:
+                out_ids.append(0)
+        return out_ids
+    
+    def _transform_intent2ont_hot(self, words, padding=0):
+        # 将多标签意图转为 one_hot
+        out_ids = np.zeros(self.size, dtype=np.float32)
+        words = convert_to_unicode(words)
+        for w in words:
+            out_ids[self._transform2id(w)] = 1.0
+        return out_ids
+
+    def _transform_seq2bert_id(self, words, padding=0):
+        out_ids, seq_len = [], 0
+        words = convert_to_unicode(words)
+        if self.max_len:
+            words = words[:self.max_len]
+        seq_len = len(words)
+        # 插入 [CLS], [SEP]
+        out_ids.append(self._transform2id("[CLS]"))
+        for w in words:
+            out_ids.append(self._transform2id(w))
+        mask_ids = [1 for _ in out_ids]
+        if padding and self.max_len:
+            while len(out_ids) < self.max_len + 1:
+                out_ids.append(0)
+                mask_ids.append(0)
+        seg_ids = [0 for _ in out_ids]
+        return out_ids, mask_ids, seg_ids, seq_len
+
+    def transform(self, seq_list, is_bert=0):
+        if is_bert:
+            return [self._transform_seq2bert_id(seq) for seq in seq_list]
+        else:
+            return [self._transform_seq2id(seq) for seq in seq_list]
+
+    def __len__(self):
+        return len(self.voc2id)
 
 def convert_to_unicode(text):
     """Converts `text` to Unicode (if it's not already), assuming utf-8 input."""
@@ -54,7 +153,6 @@ def gen_word_set(file_path, out_path='./data/words.txt'):
         for w in word_set:
             o.write(w + '\n')
     pass
-
 
 def convert_word2id(query, vocab_map):
     ids = []
@@ -179,6 +277,19 @@ def get_lcqmc():
     test_set = trans_lcqmc(dataset.test_examples)
     return train_set, dev_set, test_set
 
+def get_test(file_:str, vocab:Vocabulary):
+    test_arr = read_file(file_, '\t') # [[q1, q2],...]
+    out_arr = []
+    for line in test_arr:
+        if len(line) != 2:
+            print('wrong line size=', len(line))
+        t1, t2 = line   # [t1_ids, t1_len, t2_ids, t2_len, label]
+        t1_ids = vocab._transform_seq2id(t1, padding=1)
+        t1_len = vocab.max_len if len(t1) > vocab.max_len else len(t1)
+        t2_ids = vocab._transform_seq2id(t2, padding=1)
+        t2_len = vocab.max_len if len(t2) > vocab.max_len else len(t2)
+        out_arr.append([t1_ids, t1_len, t2_ids, t2_len])
+    return out_arr, test_arr
 
 def get_batch(dataset, batch_size=None, is_test=0):
     # tf Dataset太难用，不如自己实现

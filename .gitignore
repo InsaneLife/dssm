@@ -7,6 +7,7 @@ Summaries/
 Summaries/*
 results/*
 log
+tmp
 
 # py
 test.py

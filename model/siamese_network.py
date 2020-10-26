@@ -175,6 +175,16 @@ class SiamenseRNN(BaseModel):
         test_acc = accuracy_score(val_label, val_pred)
         return test_acc
 
+    def predict(self, test_data):
+        pbar = data_input.get_batch(test_data, batch_size=self.cfg['batch_size'], is_test=1)
+        val_pred, val_prob = [], []
+        for (t1_ids, t1_len, t2_ids, t2_len) in pbar:
+            fd = self.feed_batch(t1_ids, t1_len, t2_ids, t2_len, is_test=1)
+            pred_labels, pred_prob = self.sess.run([self.predict_idx, self.predict_prob], feed_dict=fd)
+            val_pred.extend(pred_labels)
+            val_prob.extend(pred_prob)
+        return val_pred, val_prob
+
     def run_epoch(self, epoch, data_train, data_val):
         steps = int(math.ceil(float(len(data_train)) / self.cfg['batch_size']))
         progbar = tf.keras.utils.Progbar(steps)
@@ -203,11 +213,11 @@ class SiamenseBert(SiamenseRNN):
         pass
     pass
     def build(self):
-            self.forward()
-            self.add_train_op(self.cfg['optimizer'], self.cfg['learning_rate'], self.loss)
-            self._init_session()
-            self._add_summary()
-            pass
+        self.forward()
+        self.add_train_op(self.cfg['optimizer'], self.cfg['learning_rate'], self.loss)
+        self._init_session()
+        self._add_summary()
+        pass
 
 if __name__ == "__main__":
     start = time.time()
