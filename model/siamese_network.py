@@ -303,7 +303,7 @@ class SiamenseBert(SiamenseRNN):
         for i, (out_ids1, m_ids1, seg_ids1, seq_len1, out_ids2, m_ids2, seg_ids2, seq_len2, label) in enumerate(batch_iter):
             fd = self.feed_batch(out_ids1, m_ids1, seg_ids1, seq_len1,
                                  out_ids2, m_ids2, seg_ids2, seq_len2, label)
-            a = self.sess.run([self.q_e, self.d_e], feed_dict=fd)
+            a = self.sess.run([self.is_train_place, self.q_e, self.d_e], feed_dict=fd)
             _, cur_loss = self.sess.run(
                 [self.train_op, self.loss], feed_dict=fd)
             progbar.update(i + 1, [("loss", cur_loss)])

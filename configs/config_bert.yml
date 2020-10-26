@@ -9,11 +9,11 @@ decay_step: 1800
 lr_decay: 0.95
 num_epoch: 10
 epoch_no_imprv: 10
-optimizer: "lazyadam"
+optimizer: "adam"
 summaries_dir: './results/Summaries/'
 gpu: 0
 word_dim: 100
-batch_size: 5
+batch_size: 16
 keep_porb: 0.5
 # checkpoint_dir
 checkpoint_dir: './results/checkpoint/bert/model'
