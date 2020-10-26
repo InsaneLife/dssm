@@ -6,12 +6,30 @@
 
 **\*\*\*\*2020/10/17\*\*\*\***
 
-<br>
 由于之前数据集问题，会有不收敛问题，现更换数据集为LCQMC口语化描述的语义相似度数据集。模型也从多塔变成了双塔模型，见[siamese\_network.py](https://github.com/InsaneLife/dssm/blob/master/model/siamese_network.py), 训练入口：[train.py](https://github.com/InsaneLife/dssm/blob/master/train.py)
 
 > 难以找到搜索点击的公开数据集，暂且用语义相似任务数据集，有点变味了，哈哈
-
 > 目前看在此数据集上测试数据集的准确率是提升的，只有七十多，但是要达到论文的准确率，仍然还需要进行调参
+
+训练（默认使用功LCQMC数据集）：
+
+```shell
+python train.py --mode=train
+```
+
+测试：
+
+```shell
+python train.py --mode=train --file=$predict_file$
+```
+
+测试文件格式: q1\tq2, 例如：
+
+```
+今天天气怎么样	今天温度怎么样
+```
+
+
 
 **\*\*\*\*2019/5/18\*\*\*\***
 

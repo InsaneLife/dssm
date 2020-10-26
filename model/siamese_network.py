@@ -115,6 +115,7 @@ class SiamenseRNN(BaseModel):
     def forward(self):
         # 共享的encode来编码query
         query_rnn_output = self.share_encoder(self.query_batch, self.query_seq_length, self.keep_prob_place)
+        self.query_rnn_output = query_rnn_output
         doc_rnn_output = self.share_encoder(self.doc_batch, self.doc_seq_length, self.keep_prob_place)
         # 计算cos相似度：
         # self.predict_prob, self.predict_idx = self.cos_sim(query_rnn_output, doc_rnn_output)
