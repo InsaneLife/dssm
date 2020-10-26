@@ -217,6 +217,27 @@ class BaseModel(object):
         self.seq_mask_ids = tf.strided_slice(self.mask_ids, [0, 1], bert_mask_shape, [1, 1])
         self.word_mask_ids = tf.expand_dims(tf.cast(self.seq_mask_ids, tf.float32) , -1)
 
+    def share_bert_layer(self, is_train_place, query_ids, mask_ids, seg_ids, use_bert_pre=1):
+        self.bert_config = modeling.BertConfig.from_json_file(self.cfg["bert_dir"] + self.cfg["bert_config"])
+        bert_model = modeling.BertModel(
+            config=self.bert_config,
+            is_training=is_train_place,
+            input_ids=query_ids,
+            input_mask=mask_ids,
+            token_type_ids=seg_ids,
+            use_one_hot_embeddings=False)
+        if use_bert_pre:
+            tvars = tf.trainable_variables()
+            bert_init_dir = self.cfg["bert_dir"] + self.cfg["bert_init_checkpoint"]
+            (assignment, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(tvars,
+                                                                                                   bert_init_dir)
+            tf.train.init_from_checkpoint(bert_init_dir, assignment)
+        bert_output_seq = bert_model.get_sequence_output()
+        
+        cls_output = bert_model.get_pooled_output()
+        embedding_table = bert_model.embedding_table
+        return cls_output, bert_output_seq, embedding_table
+
     def _dropout(self, input_emb, ratio=None):
         if not self.is_training:
             return input_emb

@@ -277,6 +277,32 @@ def get_lcqmc():
     test_set = trans_lcqmc(dataset.test_examples)
     return train_set, dev_set, test_set
 
+def trans_lcqmc_bert(dataset:list, vocab:Vocabulary):
+    """
+    最大长度
+    """
+    out_arr, text_len =  [], []
+    for each in dataset:
+        t1, t2, label = each.text_a, each.text_b, int(each.label)
+        out_ids1, mask_ids1, seg_ids1, seq_len1 = vocab._transform_seq2bert_id(t1, padding=1)
+        out_ids2, mask_ids2, seg_ids2, seq_len2 = vocab._transform_seq2bert_id(t2, padding=1)
+        out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1, out_ids2, mask_ids2, seg_ids2, seq_len2, label])
+        text_len.extend([len(t1), len(t2)])
+        pass
+    print("max len", max(text_len), "avg len", mean(text_len), "cover rate:", np.mean([x <= conf.max_seq_len for x in text_len]))
+    return out_arr
+
+def get_lcqmc_bert(vocab:Vocabulary):
+    """
+    使用LCQMC数据集，并将其转为word_id
+    """
+    dataset = hub.dataset.LCQMC()
+    # train_set = trans_lcqmc_bert(dataset.train_examples, vocab)
+    # dev_set = trans_lcqmc_bert(dataset.dev_examples, vocab)
+    test_set = trans_lcqmc_bert(dataset.test_examples, vocab)
+    # return train_set, dev_set, test_set
+    return test_set, test_set, test_set
+
 def get_test(file_:str, vocab:Vocabulary):
     test_arr = read_file(file_, '\t') # [[q1, q2],...]
     out_arr = []
