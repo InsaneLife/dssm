@@ -3,6 +3,8 @@
 [A Multi-View Deep Learning Approach for Cross Domain User Modeling in Recommendation Systems](http://blog.csdn.net/shine19930820/article/details/78810984)的实现Demo。
 
 # 注意：
+**\*\*\*\*2020/10/27\*\*\*\***
+中添加底层使用bert的实验，见[siamese\_network.py](https://github.com/InsaneLife/dssm/blob/master/model/siamese_network.py)中类 SiamenseBert，其他和下面一样
 
 **\*\*\*\*2020/10/17\*\*\*\***
 
