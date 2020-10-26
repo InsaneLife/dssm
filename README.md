@@ -4,7 +4,12 @@
 
 # 注意：
 **\*\*\*\*2020/10/27\*\*\*\***
-中添加底层使用bert的实验，见[siamese\_network.py](https://github.com/InsaneLife/dssm/blob/master/model/siamese_network.py)中类 SiamenseBert，其他和下面一样
+
+添加底层使用bert的siamese-bert实验，见[siamese\_network.py](https://github.com/InsaneLife/dssm/blob/master/model/siamese_network.py)中类 SiamenseBert，其他和下面一样.
+
+相比于bert 直接将两句作为输入，双塔bert的优势在于：
+- max sequence len会更短，训练所需要显存更小，速度会稍微快一些，对于硬件不是太好的伙伴比较友好。
+- 可以训练后使用bert作为句子embedding的encoder，在一些线上匹配的时候，可以预先将需要对比的句子向量算出来，节省实时算力。
 
 **\*\*\*\*2020/10/17\*\*\*\***
 
