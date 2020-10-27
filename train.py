@@ -74,7 +74,7 @@ def train_siamese_bert():
 if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     ap = argparse.ArgumentParser()
-    ap.add_argument("--method", default="bert", type=str, help="train/predict")
+    ap.add_argument("--method", default="rnn", type=str, help="train/predict")
     ap.add_argument("--mode", default="train", type=str, help="train/predict")
     ap.add_argument("--file", default="./results/input/test", type=str, help="train/predict")
     args = ap.parse_args()
