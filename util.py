@@ -44,5 +44,15 @@ def write_file(out_arr:list, file_:str, splitter='\t'):
         for line in out_arr:
             out.write(splitter.join([str(x) for x in line]) + '\n')
 
+def _truncate_seq_pair(tokens_a, tokens_b, max_length):
+    """Truncates a sequence pair in place to the maximum length."""
+    while True:
+        total_length = len(tokens_a) + len(tokens_b)
+        if total_length <= max_length:
+            break
+        if len(tokens_a) > len(tokens_b):
+            tokens_a.pop()
+        else:
+            tokens_b.pop()
 if __name__ == "__main__":
     pass

@@ -13,10 +13,10 @@ optimizer: "adam"
 summaries_dir: './results/Summaries/'
 gpu: 0
 word_dim: 100
-batch_size: 128
+batch_size: 6
 keep_porb: 0.5
 # checkpoint_dir
-checkpoint_dir: './results/checkpoint/bert/model'
+checkpoint_dir: './results/checkpoint/bert_classifier/model'
 nwords: 21128
 
 # bert

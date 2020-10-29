@@ -7,8 +7,8 @@ use_stack_rnn: False
 learning_rate: 0.00005
 decay_step: 1800
 lr_decay: 0.95
-num_epoch: 5
-epoch_no_imprv: 30
+num_epoch: 10
+epoch_no_imprv: 5
 optimizer: "adam"
 summaries_dir: './results/Summaries/'
 gpu: 0

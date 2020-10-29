@@ -15,7 +15,7 @@ import tensorflow as tf
 import random
 import paddlehub as hub
 from sklearn.metrics import accuracy_score
-import os
+import math
 from keras.layers import Dense, Subtract, Lambda
 import keras.backend as K
 from keras.regularizers import l2
@@ -91,7 +91,7 @@ class BertClassifier(BaseModel):
         self._add_summary()
         pass
 
-    def feed_batch(self, out_ids1, m_ids1, seg_ids1, seq_len1, out_ids2, m_ids2, seg_ids2, seq_len2, label=None, is_test=0):
+    def feed_batch(self, out_ids1, m_ids1, seg_ids1, seq_len1, label=None, is_test=0):
         is_train = 0 if is_test else 1
         fd = {
             self.q_ids: out_ids1, self.q_mask_ids: m_ids1,
@@ -108,10 +108,9 @@ class BertClassifier(BaseModel):
         # 每个 epoch 分batch训练
         batch_iter = data_input.get_batch(
             d_train, batch_size=self.cfg['batch_size'])
-        for i, (out_ids1, m_ids1, seg_ids1, seq_len1, out_ids2, m_ids2, seg_ids2, seq_len2, label) in enumerate(batch_iter):
-            fd = self.feed_batch(out_ids1, m_ids1, seg_ids1, seq_len1,
-                                 out_ids2, m_ids2, seg_ids2, seq_len2, label)
-            a = self.sess.run([self.is_train_place, self.q_e, self.d_e], feed_dict=fd)
+        for i, (out_ids1, m_ids1, seg_ids1, seq_len1, label) in enumerate(batch_iter):
+            fd = self.feed_batch(out_ids1, m_ids1, seg_ids1, seq_len1, label)
+            # a = self.sess.run([self.is_train_place, self.q_e], feed_dict=fd)
             _, cur_loss = self.sess.run(
                 [self.train_op, self.loss], feed_dict=fd)
             progbar.update(i + 1, [("loss", cur_loss)])

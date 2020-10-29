@@ -31,7 +31,8 @@ class BaseModel(object):
         self.is_training = is_training
         if not is_training:
             self.cfg['dropout'] = 0
-        self._init_session()
+        self.build()
+
 
     def __del__(self):
         # self.sess.close()

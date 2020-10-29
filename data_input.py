@@ -104,6 +104,40 @@ class Vocabulary(object):
         seg_ids = [0 for _ in out_ids]
         return out_ids, mask_ids, seg_ids, seq_len
 
+    @staticmethod
+    def _truncate_seq_pair(tokens_a, tokens_b, max_length):
+        """Truncates a sequence pair in place to the maximum length."""
+        while True:
+            total_length = len(tokens_a) + len(tokens_b)
+            if total_length <= max_length:
+                break
+            if len(tokens_a) > len(tokens_b):
+                tokens_a.pop()
+            else:
+                tokens_b.pop()
+
+    def _transform_2seq2bert_id(self, seq1, seq2, padding=0):
+        out_ids, seg_ids, seq_len = [], [1], 0
+        seq1 = [x for x in convert_to_unicode(seq1)]
+        seq2 = [x for x in convert_to_unicode(seq2)]
+        # 截断
+        self._truncate_seq_pair(seq1, seq2, self.max_len - 2)
+        # 插入 [CLS], [SEP]
+        out_ids.append(self._transform2id("[CLS]"))
+        for w in seq1:
+            out_ids.append(self._transform2id(w))
+            seg_ids.append(0)
+        for w in seq2:
+            out_ids.append(self._transform2id(w))
+            seg_ids.append(1)
+        mask_ids = [1 for _ in out_ids]
+        if padding and self.max_len:
+            while len(out_ids) < self.max_len + 1:
+                out_ids.append(0)
+                mask_ids.append(0)
+                seg_ids.append(0)
+        return out_ids, mask_ids, seg_ids, seq_len
+
     def transform(self, seq_list, is_bert=0):
         if is_bert:
             return [self._transform_seq2bert_id(seq) for seq in seq_list]
@@ -277,29 +311,34 @@ def get_lcqmc():
     test_set = trans_lcqmc(dataset.test_examples)
     return train_set, dev_set, test_set
 
-def trans_lcqmc_bert(dataset:list, vocab:Vocabulary):
+def trans_lcqmc_bert(dataset:list, vocab:Vocabulary, is_merge=0):
     """
     最大长度
     """
     out_arr, text_len =  [], []
     for each in dataset:
         t1, t2, label = each.text_a, each.text_b, int(each.label)
-        out_ids1, mask_ids1, seg_ids1, seq_len1 = vocab._transform_seq2bert_id(t1, padding=1)
-        out_ids2, mask_ids2, seg_ids2, seq_len2 = vocab._transform_seq2bert_id(t2, padding=1)
-        out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1, out_ids2, mask_ids2, seg_ids2, seq_len2, label])
-        text_len.extend([len(t1), len(t2)])
+        if is_merge:
+            out_ids1, mask_ids1, seg_ids1, seq_len1 = vocab._transform_2seq2bert_id(t1, t2, padding=1)
+            out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1, label])
+            text_len.extend([len(t1) + len(t2)])
+        else:
+            out_ids1, mask_ids1, seg_ids1, seq_len1 = vocab._transform_seq2bert_id(t1, padding=1)
+            out_ids2, mask_ids2, seg_ids2, seq_len2 = vocab._transform_seq2bert_id(t2, padding=1)
+            out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1, out_ids2, mask_ids2, seg_ids2, seq_len2, label])
+            text_len.extend([len(t1), len(t2)])
         pass
     print("max len", max(text_len), "avg len", mean(text_len), "cover rate:", np.mean([x <= conf.max_seq_len for x in text_len]))
     return out_arr
 
-def get_lcqmc_bert(vocab:Vocabulary):
+def get_lcqmc_bert(vocab:Vocabulary, is_merge=0):
     """
-    使用LCQMC数据集，并将其转为word_id
+    使用LCQMC数据集，并将每个query其转为word_id，
     """
     dataset = hub.dataset.LCQMC()
-    train_set = trans_lcqmc_bert(dataset.train_examples, vocab)
-    dev_set = trans_lcqmc_bert(dataset.dev_examples, vocab)
-    test_set = trans_lcqmc_bert(dataset.test_examples, vocab)
+    train_set = trans_lcqmc_bert(dataset.train_examples, vocab, is_merge)
+    dev_set = trans_lcqmc_bert(dataset.dev_examples, vocab, is_merge)
+    test_set = trans_lcqmc_bert(dataset.test_examples, vocab, is_merge)
     return train_set, dev_set, test_set
     # return test_set, test_set, test_set
 
@@ -315,6 +354,22 @@ def get_test(file_:str, vocab:Vocabulary):
         t2_ids = vocab._transform_seq2id(t2, padding=1)
         t2_len = vocab.max_len if len(t2) > vocab.max_len else len(t2)
         out_arr.append([t1_ids, t1_len, t2_ids, t2_len])
+    return out_arr, test_arr
+
+def get_test_bert(file_:str, vocab:Vocabulary, is_merge=0):
+    test_arr = read_file(file_, '\t') # [[q1, q2],...]
+    out_arr = []
+    for line in test_arr:
+        if len(line) != 2:
+            print('wrong line size=', len(line))
+        t1, t2 = line   # [t1_ids, t1_len, t2_ids, t2_len, label]
+        if is_merge:
+            out_ids1, mask_ids1, seg_ids1, seq_len1 = vocab._transform_2seq2bert_id(t1, t2, padding=1)
+            out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1])
+        else:
+            out_ids1, mask_ids1, seg_ids1, seq_len1 = vocab._transform_seq2bert_id(t1, padding=1)
+            out_ids2, mask_ids2, seg_ids2, seq_len2 = vocab._transform_seq2bert_id(t2, padding=1)
+            out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1, out_ids2, mask_ids2, seg_ids2, seq_len2])
     return out_arr, test_arr
 
 def get_batch(dataset, batch_size=None, is_test=0):
