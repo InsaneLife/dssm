@@ -71,6 +71,24 @@ def train_siamese_bert():
     model.fit(data_train, data_val, data_test)
     pass
 
+def predict_siamese_bert(file_="./results/input/test"):
+    # 读取配置
+    # conf = Config()
+    cfg_path = "./configs/config_bert.yml"
+    cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+    # vocab: 将 seq转为id，
+    vocab = Vocabulary(meta_file='./data/vocab.txt', max_len=cfg['max_seq_len'], allow_unk=1, unk='[UNK]', pad='[PAD]')
+    # 读取数据
+    test_arr, query_arr  = data_input.get_test_bert(file_, vocab)
+    print("test size:{}".format(len(test_arr)))
+    model = SiamenseBert(cfg)
+    model.restore_session(cfg["checkpoint_dir"])
+    test_label, test_prob = model.predict(test_arr)
+    out_arr = [x + [test_label[i]] + [test_prob[i]] for i, x in enumerate(query_arr)]
+    write_file(out_arr, file_ + '.siamese.bert.predict', )
+    pass
+
 if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     ap = argparse.ArgumentParser()
@@ -84,3 +102,5 @@ if __name__ == "__main__":
         predict_siamese(args.file)
     elif args.mode == 'train' and args.method == 'bert':
         train_siamese_bert()
+    elif args.mode == 'predict' and args.method == 'bert':
+        predict_siamese_bert()
