@@ -9,7 +9,6 @@
 '''
 
 # here put the import lib
-import imp
 from os import name
 import time
 import numpy as np

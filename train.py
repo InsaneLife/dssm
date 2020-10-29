@@ -4,11 +4,12 @@
 @Time    :   2020/10/25 22:28:30
 @Author  :   zhiyang.zzy 
 @Contact :   zhiyangchou@gmail.com
-@Desc    :   
+@Desc    :   训练相似度模型
+1. siamese network，分别使用 cosine、曼哈顿距离
+2. 映入
 '''
 
 # here put the import lib
-import imp
 import os
 import time
 from numpy.lib.arraypad import pad
