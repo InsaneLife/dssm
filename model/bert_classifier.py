@@ -123,9 +123,9 @@ class BertClassifier(BaseModel):
         pbar = data_input.get_batch(
             test_data, batch_size=self.cfg['batch_size'], is_test=1)
         val_label, val_pred = [], []
-        for (out_ids1, m_ids1, seg_ids1, seq_len1, out_ids2, m_ids2, seg_ids2, seq_len2, label) in pbar:
+        for (out_ids1, m_ids1, seg_ids1, seq_len1, label) in pbar:
             val_label.extend(label)
-            fd = self.feed_batch(out_ids1, m_ids1, seg_ids1, seq_len1, out_ids2, m_ids2, seg_ids2, seq_len2, is_test=1)
+            fd = self.feed_batch(out_ids1, m_ids1, seg_ids1, seq_len1, is_test=1)
             pred_labels, pred_prob = self.sess.run(
                 [self.predict_idx, self.predict_prob], feed_dict=fd)
             val_pred.extend(pred_labels)

@@ -340,6 +340,7 @@ def get_lcqmc_bert(vocab:Vocabulary, is_merge=0):
     dev_set = trans_lcqmc_bert(dataset.dev_examples, vocab, is_merge)
     test_set = trans_lcqmc_bert(dataset.test_examples, vocab, is_merge)
     return train_set, dev_set, test_set
+    # test_set = test_set[:100]
     # return test_set, test_set, test_set
 
 def get_test(file_:str, vocab:Vocabulary):

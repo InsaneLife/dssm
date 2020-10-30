@@ -7,13 +7,13 @@ use_stack_rnn: False
 learning_rate: 0.00005
 decay_step: 1800
 lr_decay: 0.95
-num_epoch: 5
+num_epoch: 10
 epoch_no_imprv: 30
 optimizer: "adam"
 summaries_dir: './results/Summaries/'
 gpu: 0
 word_dim: 100
-batch_size: 6
+batch_size: 64
 keep_porb: 0.5
 # checkpoint_dir
 checkpoint_dir: './results/checkpoint/bert_classifier/model'

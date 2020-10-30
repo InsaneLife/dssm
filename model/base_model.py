@@ -49,7 +49,7 @@ class BaseModel(object):
         self.saver = tf.train.Saver()
     
     def restore_session(self, dir_model):
-        logging.info("Reloading the latest trained model...")
+        print("Reloading the latest trained model...")
         self.saver.restore(self.sess, dir_model)
 
     def _add_summary(self):
@@ -83,21 +83,21 @@ class BaseModel(object):
         '''
         best_score, nepoch_no_imprv = -1, 0
         for epoch in range(self.cfg["num_epoch"]):
-            logging.info("Epoch {:} out of {:}".format(epoch + 1, self.cfg["num_epoch"]))
+            print("Epoch {:} out of {:}".format(epoch + 1, self.cfg["num_epoch"]))
             score = self.run_epoch(epoch, train, dev)
             if score > best_score:
                 nepoch_no_imprv = 0
                 self.save_session()
                 best_score = score
-                logging.info("- new best score!")
+                print("- new best score!")
                 if test:
                     test_acc = self.eval(test)
                     # self.print_eval_result(test_result)
-                    logging.info("test sf acc:{}".format(test_acc))
+                    print("test sf acc:{}".format(test_acc))
             else:
                 nepoch_no_imprv += 1
                 if nepoch_no_imprv >= self.cfg["epoch_no_imprv"]:
-                    logging.info("- early stopping {} epoches without improvement".format(nepoch_no_imprv))
+                    print("- early stopping {} epoches without improvement".format(nepoch_no_imprv))
                     break
             pass
         pass
