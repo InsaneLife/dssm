@@ -46,5 +46,5 @@ if __name__ == '__main__':
     # print("test size:{}".format(len(test_arr)))
     model = BertClassifier(cfg)
     model.restore_session(cfg["checkpoint_dir"])
-    
     app.run()
+    # 输入url测试，例如：http://127.0.0.1:5000/hello/今天天气/明天天气
