@@ -359,6 +359,11 @@ def get_test(file_:str, vocab:Vocabulary):
 
 def get_test_bert(file_:str, vocab:Vocabulary, is_merge=0):
     test_arr = read_file(file_, '\t') # [[q1, q2],...]
+    out_arr = get_test_bert_by_arr(test_arr, vocab, is_merge)
+    return out_arr, test_arr
+
+def get_test_bert_by_arr(test_arr:list, vocab:Vocabulary, is_merge=0):
+    # test_arr # [[q1, q2],...]
     out_arr = []
     for line in test_arr:
         if len(line) != 2:
