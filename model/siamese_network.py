@@ -110,6 +110,7 @@ class SiamenseRNN(BaseModel):
         l1_distance_layer = Lambda(
             lambda tensors: K.abs(tensors[0] - tensors[1]))
         l1_distance = l1_distance_layer([query_rnn_output, doc_rnn_output])
+        l1_distance = tf.concat([l1_distance, query_rnn_output, doc_rnn_output], axis=-1)
         predict_prob = Dense(units=1, activation='sigmoid')(l1_distance)
         # bs * 1
         predict_prob = tf.reshape(predict_prob, [-1])
