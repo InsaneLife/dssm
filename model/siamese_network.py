@@ -16,7 +16,7 @@ import tensorflow as tf
 import random
 import paddlehub as hub
 from sklearn.metrics import accuracy_score
-import os
+import math
 from keras.layers import Dense, Subtract, Lambda
 import keras.backend as K
 from keras.regularizers import l2
