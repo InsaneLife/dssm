@@ -6,6 +6,7 @@
 @Contact :   zhiyangchou@gmail.com
 @Desc    :   siamense network, 使用曼哈顿距离、cos相似度进行实验。
 1. 使用预训练词向量。2. 使用lcqmc数据集实验。3. 添加预测。
+todo: add triplet loss
 '''
 
 # here put the import lib
