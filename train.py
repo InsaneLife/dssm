@@ -135,8 +135,8 @@ if __name__ == "__main__":
     elif args.mode == 'train' and args.method == 'bert_siamese':
         train_siamese_bert()
     elif args.mode == 'predict' and args.method == 'bert_siamese':
-        predict_siamese_bert()
+        predict_siamese_bert(args.file)
     elif args.mode == 'train' and args.method == 'bert':
         train_bert()
     elif args.mode == 'predict' and args.method == 'bert':
-        predict_bert()
+        predict_bert(args.file)
