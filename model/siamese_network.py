@@ -37,6 +37,15 @@ def cosine_similarity(a, b):
     r = tf.divide(e, f)
     return r
 
+def siamese_loss(out1,out2,y,Q=5):
+
+    Q = tf.constant(Q, name="Q",dtype=tf.float32)
+    E_w = tf.sqrt(tf.reduce_sum(tf.square(out1-out2),1))   
+    pos = tf.multiply(tf.multiply(y,2/Q),tf.square(E_w))
+    neg = tf.multiply(tf.multiply(1-y,2*Q),tf.exp(-2.77/Q*E_w))                
+    loss = pos + neg                 
+    loss = tf.reduce_mean(loss)              
+    return loss
 
 def variable_summaries(var, name):
     """Attach a lot of summaries to a Tensor."""
