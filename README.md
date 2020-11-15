@@ -3,6 +3,8 @@
 [A Multi-View Deep Learning Approach for Cross Domain User Modeling in Recommendation Systems](http://blog.csdn.net/shine19930820/article/details/78810984)的实现Demo。
 
 # 注意：
+**\*\*\*\*2020/11/15\*\*\*\***
+论文[li2020sentence](https://arxiv.org/abs/2011.05864)将normalizing flows和bert结合，在语义相似度任务上有奇效，接下来会继续进行验证。
 **\*\*\*\*2020/10/27\*\*\*\***
 
 添加底层使用bert的siamese-bert实验，见[siamese\_network.py](https://github.com/InsaneLife/dssm/blob/master/model/siamese_network.py)中类 SiamenseBert，其他和下面一样.
