@@ -13,6 +13,7 @@
 - max sequence len会更短，训练所需要显存更小，速度会稍微快一些，对于硬件不是太好的伙伴比较友好。
 - 可以训练后使用bert作为句子embedding的encoder，在一些线上匹配的时候，可以预先将需要对比的句子向量算出来，节省实时算力。
 - 效果相比于直接用bert输入两句，测试集会差一个多点。
+- bert可以使用[CLS]的输出或者average context embedding, 一般后者效果会更好。
 ```shell
 # bert_siamese双塔模型
 python train.py --mode=train --method=bert_siamese
