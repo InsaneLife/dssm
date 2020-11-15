@@ -38,7 +38,7 @@ def cosine_similarity(a, b):
     return r
 
 def siamese_loss(out1,out2,y,Q=5):
-
+    # 使用欧式距离，概率使用e^{-x}
     Q = tf.constant(Q, name="Q",dtype=tf.float32)
     E_w = tf.sqrt(tf.reduce_sum(tf.square(out1-out2),1))   
     pos = tf.multiply(tf.multiply(y,2/Q),tf.square(E_w))
