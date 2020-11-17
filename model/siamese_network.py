@@ -266,10 +266,9 @@ class SiamenseBert(SiamenseRNN):
             self.is_train_place, self.q_ids, self.q_mask_ids, self.q_seg_ids, use_bert_pre=1)
         d_emb, d_seq, self.d_e = self.share_bert_layer(
             self.is_train_place, self.d_ids, self.d_mask_ids, self.d_seg_ids, use_bert_pre=1)
-        if self.cfg['use_avg_polling']:
+        if self.cfg['use_avg_pooling']:
             print("use avg pooling")
-            # bs * seq_len * dim
-            q_emb = tf.reduce_mean(q_seq, [1])
+            q_emb = tf.reduce_mean(q_seq, [1])  # bs * seq_len * dim
             d_emb = tf.reduce_mean(d_seq, [1])
         self.q_emb1 = tf.reduce_mean(q_seq, [1])
         # 计算cos相似度：
@@ -318,7 +317,7 @@ class SiamenseBert(SiamenseRNN):
         for i, (out_ids1, m_ids1, seg_ids1, seq_len1, out_ids2, m_ids2, seg_ids2, seq_len2, label) in enumerate(batch_iter):
             fd = self.feed_batch(out_ids1, m_ids1, seg_ids1, seq_len1,
                                  out_ids2, m_ids2, seg_ids2, seq_len2, label)
-            a = self.sess.run([self.q_emb1, self.q_e, self.d_e], feed_dict=fd)
+            # a = self.sess.run([self.q_emb1, self.q_e, self.d_e], feed_dict=fd)
             _, cur_loss = self.sess.run(
                 [self.train_op, self.loss], feed_dict=fd)
             progbar.update(i + 1, [("loss", cur_loss)])
