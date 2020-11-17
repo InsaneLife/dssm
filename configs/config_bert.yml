@@ -13,11 +13,12 @@ optimizer: "adam"
 summaries_dir: './results/Summaries/'
 gpu: 0
 word_dim: 100
-batch_size: 128
+batch_size: 12
 keep_porb: 0.5
 # checkpoint_dir
 checkpoint_dir: './results/checkpoint/bert/model'
 nwords: 21128
+use_avg_polling: 1
 
 # bert
 # bert_dir: &bert_dir '/mnt/nlp/bert/chinese_L-12_H-768_A-12/'
