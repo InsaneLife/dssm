@@ -13,9 +13,10 @@ tmp
 test.py
 
 # 通用
+.unotes/
 envi/
 __pycache__/
-#.vscode/
+.vscode/
 *.pyc
 .DS_Store
 *.DS_Store
