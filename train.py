@@ -145,8 +145,8 @@ def siamese_bert_sentence_embedding(file_="./results/input/test.single"):
 if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     ap = argparse.ArgumentParser()
-    ap.add_argument("--method", default="bert_siamese_embedding", type=str, help="train/predict")
-    ap.add_argument("--mode", default="predict", type=str, help="train/predict")
+    ap.add_argument("--method", default="bert", type=str, help="train/predict")
+    ap.add_argument("--mode", default="train", type=str, help="train/predict")
     ap.add_argument("--file", default="./results/input/test", type=str, help="train/predict")
     args = ap.parse_args()
     if args.mode == 'train' and args.method == 'rnn':
