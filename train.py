@@ -162,7 +162,7 @@ if __name__ == "__main__":
     elif args.mode == 'predict' and args.method == 'bert':
         predict_bert(args.file)
     elif args.mode == 'predict' and args.method == 'bert_siamese_embedding':
-        # 此处输出句子的 embedding 
+        # 此处输出句子的 embedding，如果想要使用向量召回
         # 建议训练模型的时候，损失函数使用功能和faiss一致的距离度量，例如faiss中使用是l2，那么损失函数用l2
         # faiss距离用cos，损失函数用cosin，或者损失中有一项是cosin相似度损失
         siamese_bert_sentence_embedding(args.file)
