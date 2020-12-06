@@ -379,6 +379,15 @@ def get_test_bert_by_arr(test_arr:list, vocab:Vocabulary, is_merge=0):
             out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1, out_ids2, mask_ids2, seg_ids2, seq_len2])
     return out_arr, test_arr
 
+def get_test_bert_single(file_:str, vocab:Vocabulary, is_merge=0):
+    test_arr = read_file(file_) # [q1,...]
+    out_arr = []
+    for line in test_arr:
+        t1 = line   # [t1_ids, t1_len, t2_ids, t2_len, label]
+        out_ids1, mask_ids1, seg_ids1, seq_len1 = vocab._transform_seq2bert_id(t1, padding=1)
+        out_arr.append([out_ids1, mask_ids1, seg_ids1, seq_len1])
+    return out_arr, test_arr
+
 def get_batch(dataset, batch_size=None, is_test=0):
     # tf Dataset太难用，不如自己实现
     # https://stackoverflow.com/questions/50539342/getting-batches-in-tensorflow

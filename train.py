@@ -121,11 +121,32 @@ def predict_bert(file_="./results/input/test"):
     write_file(out_arr, file_ + '.bert.predict', )
     pass
 
+def siamese_bert_sentence_embedding(file_="./results/input/test.single"):
+    # 输入一行是一个query，输出是此query对应的向量
+    # 读取配置
+    cfg_path = "./configs/config_bert.yml"
+    cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
+    cfg['batch_size'] = 64
+    os.environ["CUDA_VISIBLE_DEVICES"] = "7"
+    # vocab: 将 seq转为id，
+    vocab = Vocabulary(meta_file='./data/vocab.txt', max_len=cfg['max_seq_len'], allow_unk=1, unk='[UNK]', pad='[PAD]')
+    # 读取数据
+    test_arr, query_arr = data_input.get_test_bert_single(file_, vocab)
+    print("test size:{}".format(len(test_arr)))
+    model = SiamenseBert(cfg)
+    model.restore_session(cfg["checkpoint_dir"])
+    test_label = model.predict_embedding(test_arr)
+    test_label = [",".join([str(y) for y in x]) for x in test_label]
+    out_arr = [[x, test_label[i]] for i, x in enumerate(query_arr)]
+    print("write to file...")
+    write_file(out_arr, file_ + '.siamese.bert.embedding', )
+    pass
+
 if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "4"
     ap = argparse.ArgumentParser()
-    ap.add_argument("--method", default="bert_siamese", type=str, help="train/predict")
-    ap.add_argument("--mode", default="train", type=str, help="train/predict")
+    ap.add_argument("--method", default="bert_siamese_embedding", type=str, help="train/predict")
+    ap.add_argument("--mode", default="predict", type=str, help="train/predict")
     ap.add_argument("--file", default="./results/input/test", type=str, help="train/predict")
     args = ap.parse_args()
     if args.mode == 'train' and args.method == 'rnn':
@@ -140,3 +161,8 @@ if __name__ == "__main__":
         train_bert()
     elif args.mode == 'predict' and args.method == 'bert':
         predict_bert(args.file)
+    elif args.mode == 'predict' and args.method == 'bert_siamese_embedding':
+        # 此处输出句子的 embedding 
+        # 建议训练模型的时候，损失函数使用功能和faiss一致的距离度量，例如faiss中使用是l2，那么损失函数用l2
+        # faiss距离用cos，损失函数用cosin，或者损失中有一项是cosin相似度损失
+        siamese_bert_sentence_embedding(args.file)

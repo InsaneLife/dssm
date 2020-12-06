@@ -350,6 +350,22 @@ class SiamenseBert(SiamenseRNN):
             val_pred.extend(pred_labels)
             val_prob.extend(pred_prob)
         return val_pred, val_prob
+        
+    def predict_embedding(self, test_data):
+        pbar = data_input.get_batch(
+            test_data, batch_size=self.cfg['batch_size'], is_test=1)
+        val_embed = []
+        for (out_ids1, m_ids1, seg_ids1, seq_len1) in pbar:
+            fd = {
+                self.q_ids: out_ids1, self.q_mask_ids: m_ids1,
+                self.q_seg_ids: seg_ids1,
+                self.q_seq_length: seq_len1,
+                self.keep_prob_place: 1,
+                self.is_train_place: 0
+            }
+            pred_embedding = self.sess.run(self.q_emb, feed_dict=fd)
+            val_embed.extend(pred_embedding)
+        return val_embed
 
 
 if __name__ == "__main__":
