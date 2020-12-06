@@ -260,7 +260,20 @@ class SiamenseBert(SiamenseRNN):
         self.sim_labels = tf.placeholder(
             tf.float32, shape=[None], name="sim_labels")
         self.keep_prob_place = tf.placeholder(tf.float32, name='keep_prob')
-
+    def siamese_loss(self, out1, out2, y, Q=5.0):
+        Q = tf.constant(Q, dtype=tf.float32)
+        E_w = tf.sqrt(tf.reduce_sum(tf.square(out1-out2),1))   
+        pos = tf.multiply(tf.multiply(y,2/Q),tf.square(E_w))
+        neg = tf.multiply(tf.multiply(1-y,2*Q),tf.exp(-2.77/Q*E_w))                
+        loss = pos + neg                 
+        loss = tf.reduce_mean(loss)              
+        return loss
+    def contrastive_loss(self, model1, model2, y, margin=0.5):
+        with tf.name_scope("contrastive-loss"):
+            distance = tf.sqrt(tf.reduce_sum(tf.pow(model1 - model2, 2), 1, keepdims=True))
+            similarity = y * tf.square(distance)                                           # keep the similar label (1) close to each other
+            dissimilarity = (1 - y) * tf.square(tf.maximum((margin - distance), 0))        # give penalty to dissimilar label if the distance is bigger than margin
+            return tf.reduce_mean(dissimilarity + similarity) / 2
     def forward(self):
         # 获取cls的输出
         q_emb, q_seq, self.q_e = self.share_bert_layer(
