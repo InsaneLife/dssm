@@ -22,6 +22,7 @@ python train.py --mode=train --method=bert_siamese
 # 直接使用功能bert
 python train.py --mode=train --method=bert
 ```
+参考：[reimers2019sentence](https://arxiv.org/abs/1908.10084)
 
 **\*\*\*\*2020/10/17\*\*\*\***
 
@@ -263,3 +264,8 @@ nnictl create --config auto_ml.yml -p 8888
 ```
 详细文档：https://nni.readthedocs.io/zh/latest/Overview.html
 
+
+# Reference
+- [li2020sentence](https://arxiv.org/abs/2011.05864)
+- [Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks](https://arxiv.org/abs/1908.10084)
+- nni 调参: https://nni.readthedocs.io/zh/latest/Overview.html
