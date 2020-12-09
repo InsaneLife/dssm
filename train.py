@@ -14,6 +14,7 @@ from model.bert_classifier import BertClassifier
 import os
 import time
 from numpy.lib.arraypad import pad
+import nni
 from tensorflow.python.ops.gen_io_ops import write_file
 import yaml
 import logging
@@ -59,6 +60,9 @@ def train_siamese_bert():
     # conf = Config()
     cfg_path = "./configs/config_bert.yml"
     cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
+    # 自动调参的参数，每次会更新一组搜索空间中的参数
+    tuner_params= nni.get_next_parameter()
+    cfg.update(tuner_params)
     # vocab: 将 seq转为id，
     vocab = Vocabulary(meta_file='./data/vocab.txt', max_len=cfg['max_seq_len'], allow_unk=1, unk='[UNK]', pad='[PAD]')
     # 读取数据
@@ -93,11 +97,14 @@ def train_bert():
     # conf = Config()
     cfg_path = "./configs/bert_classify.yml"
     cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
+    # 自动调参的参数，每次会更新一组搜索空间中的参数
+    tuner_params= nni.get_next_parameter()
+    cfg.update(tuner_params)
     # vocab: 将 seq转为id，
     vocab = Vocabulary(meta_file='./data/vocab.txt', max_len=cfg['max_seq_len'], allow_unk=1, unk='[UNK]', pad='[PAD]')
     # 读取数据
     data_train, data_val, data_test = data_input.get_lcqmc_bert(vocab, is_merge=1)
-    # data_train = data_train[:1000]
+    data_train = data_train[:100]
     print("train size:{},val size:{}, test size:{}".format(
         len(data_train), len(data_val), len(data_test)))
     model = BertClassifier(cfg)

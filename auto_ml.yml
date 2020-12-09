@@ -1,0 +1,25 @@
+authorName: default
+experimentName: example_dssm
+trialConcurrency: 1
+maxExecDuration: 10h
+maxTrialNum: 8
+#choice: local, remote, pai
+trainingServicePlatform: local
+searchSpacePath: ./configs/search_space.json
+#choice: true, false
+useAnnotation: false
+tuner:
+  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
+  #SMAC (SMAC should be installed through nnictl)
+  builtinTunerName: TPE
+  classArgs:
+    #choice: maximize, minimize
+    optimize_mode: maximize
+trial:
+  command: python3 train.py --method=bert --mode=train
+  codeDir: .
+  gpuNum: 0
+localConfig:
+  useActiveGpu: true
+  maxTrialNumPerGpu: 3
+  # gpuIndices: 4,0,5

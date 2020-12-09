@@ -14,7 +14,7 @@ Desc: 		基础模型，包含基本功能
 import numpy as np
 import os
 import tensorflow as tf
-import shutil
+import nni
 # from tensorflow.python.ops import rnn_cell_impl as core_rnn_cell
 import logging
 from collections import defaultdict
@@ -206,6 +206,7 @@ class BaseModel(object):
                 if nepoch_no_imprv >= self.cfg["epoch_no_imprv"]:
                     print(
                         "- early stopping {} epoches without improvement".format(nepoch_no_imprv))
+                    nni.report_final_result(best_score)
                     break
             pass
         pass

@@ -253,3 +253,13 @@ GitHub完整代码 [https://github.com/InsaneLife/dssm](https://github.com/Insan
 Multi-view DSSM实现同理，可以参考GitHub：[multi\_view\_dssm\_v3](https://github.com/InsaneLife/dssm/blob/master/multi_view_dssm_v3.py)
 
 CSDN原文：[http://blog.csdn.net/shine19930820/article/details/79042567](http://blog.csdn.net/shine19930820/article/details/79042567)
+
+## 自动调参
+参数搜索空间：[search_space.json](./configs/search_space.json)
+配置文件：[auto_ml.yml](auto_ml.yml)
+启动命令
+```shell
+nnictl create --config auto_ml.yml -p 8888
+```
+详细文档：https://nni.readthedocs.io/zh/latest/Overview.html
+

@@ -1,0 +1,4 @@
+{
+    "batch_size": {"_type":"choice", "_value": [64, 128, 256]},
+    "learning_rate":{"_type":"quniform","_value":[0.00002, 0.00005, 0.00001]}
+}

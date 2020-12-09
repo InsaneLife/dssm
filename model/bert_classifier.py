@@ -19,6 +19,7 @@ import math
 from keras.layers import Dense, Subtract, Lambda
 import keras.backend as K
 from keras.regularizers import l2
+import nni
 
 import data_input
 from config import Config
@@ -116,6 +117,7 @@ class BertClassifier(BaseModel):
             progbar.update(i + 1, [("loss", cur_loss)])
         # 训练完一个epoch之后，使用验证集评估，然后预测， 然后评估准确率
         dev_acc = self.eval(d_val)
+        nni.report_intermediate_result(dev_acc)
         print("dev set acc:", dev_acc)
         return dev_acc
 
