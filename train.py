@@ -33,7 +33,7 @@ def train_siamese():
     cfg = yaml.load(open(cfg_path, encoding='utf-8'), Loader=yaml.FullLoader)
     # 读取数据
     data_train, data_val, data_test = data_input.get_lcqmc()
-    # data_train = data_train[:10000]
+    # data_train = data_train[:100]
     print("train size:{},val size:{}, test size:{}".format(
         len(data_train), len(data_val), len(data_test)))
     model = SiamenseRNN(cfg)
@@ -67,7 +67,7 @@ def train_siamese_bert():
     vocab = Vocabulary(meta_file='./data/vocab.txt', max_len=cfg['max_seq_len'], allow_unk=1, unk='[UNK]', pad='[PAD]')
     # 读取数据
     data_train, data_val, data_test = data_input.get_lcqmc_bert(vocab)
-    # data_train = data_train[:1000]
+    # data_train = data_train[:100]
     print("train size:{},val size:{}, test size:{}".format(
         len(data_train), len(data_val), len(data_test)))
     model = SiamenseBert(cfg)
@@ -104,7 +104,7 @@ def train_bert():
     vocab = Vocabulary(meta_file='./data/vocab.txt', max_len=cfg['max_seq_len'], allow_unk=1, unk='[UNK]', pad='[PAD]')
     # 读取数据
     data_train, data_val, data_test = data_input.get_lcqmc_bert(vocab, is_merge=1)
-    data_train = data_train[:100]
+    # data_train = data_train[:100]
     print("train size:{},val size:{}, test size:{}".format(
         len(data_train), len(data_val), len(data_test)))
     model = BertClassifier(cfg)
