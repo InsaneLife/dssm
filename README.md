@@ -263,6 +263,7 @@ CSDN原文：[http://blog.csdn.net/shine19930820/article/details/79042567](http:
 nnictl create --config auto_ml.yml -p 8888
 ```
 > 由于没有gpu 😂，[auto_ml.yml](auto_ml.yml)设置中没有配置gpu，有gpu同学可自行配置。
+
 详细文档：https://nni.readthedocs.io/zh/latest/Overview.html
 
 
