@@ -127,6 +127,8 @@ class Vocabulary(object):
         for w in seq1:
             out_ids.append(self._transform2id(w))
             seg_ids.append(0)
+        out_ids.append(self._transform2id("[SEP]"))
+        seg_ids.append(0)
         for w in seq2:
             out_ids.append(self._transform2id(w))
             seg_ids.append(1)
