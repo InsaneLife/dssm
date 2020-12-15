@@ -358,9 +358,35 @@ class BaseModel(object):
             tf.train.init_from_checkpoint(bert_init_dir, assignment)
         bert_output_seq = bert_model.get_sequence_output()
 
-        cls_output = bert_model.get_pooled_output()
+        # 默认使用cls输出
+        pooled = bert_model.get_pooled_output()
         embedding_table = bert_model.embedding_table
-        return cls_output, bert_output_seq, embedding_table
+        input_mask_ = tf.cast(tf.expand_dims(mask_ids, axis=-1), dtype=tf.float32)
+        if self.cfg['sentence_embedding_type'] == "avg":
+            # 最后一层avg pooling
+            pooled = tf.reduce_sum(bert_output_seq * input_mask_, axis=1) / tf.reduce_sum(input_mask_, axis=1)
+        elif self.cfg['sentence_embedding_type'].startswith("avg-last-last-"):
+            # 使用最后的第n层 avg pooling
+            n_last = int(self.cfg['sentence_embedding_type'][-1])
+            sequence = bert_model.all_encoder_layers[-n_last] # [batch_size, seq_length, hidden_size]
+            pooled = tf.reduce_sum(sequence * input_mask_, axis=1) / tf.reduce_sum(input_mask_, axis=1)
+        elif self.cfg['sentence_embedding_type'].startswith("avg-last-"):
+            # 使用最后的n层 avg pooling
+            print(self.cfg['sentence_embedding_type'], "-" * 100)
+            pooled = 0
+            n_last = int(self.cfg['sentence_embedding_type'][-1])
+            for i in range(n_last):
+                sequence = bert_model.all_encoder_layers[-i]
+                pooled += tf.reduce_sum(sequence * input_mask_, axis=1) / tf.reduce_sum(input_mask_, axis=1)
+            pooled /= float(n_last)
+        elif self.cfg['sentence_embedding_type'].startswith("avg-last-concat-"):
+            pooled = []
+            n_last = int(self.cfg['sentence_embedding_type'][-1])
+            for i in range(n_last):
+                sequence = bert_model.all_encoder_layers[-i]
+                pooled += [tf.reduce_sum(sequence * input_mask_, axis=1) / tf.reduce_sum(input_mask_, axis=1)]
+            pooled = tf.concat(pooled, axis=-1)
+        return pooled, bert_output_seq, embedding_table
 
     def _dropout(self, input_emb, ratio=None):
         if not self.is_training:

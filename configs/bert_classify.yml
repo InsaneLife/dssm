@@ -18,6 +18,7 @@ keep_porb: 0.5
 # checkpoint_dir
 checkpoint_dir: './results/checkpoint/bert_classifier/model'
 nwords: 21128
+sentence_embedding_type: cls
 
 # bert
 # bert_dir: &bert_dir '/mnt/nlp/bert/chinese_L-12_H-768_A-12/'

@@ -19,6 +19,7 @@ keep_porb: 0.5
 checkpoint_dir: './results/checkpoint/bert/model'
 nwords: 21128
 use_avg_pooling: 1
+sentence_embedding_type: avg-last-2
 
 # bert
 # bert_dir: &bert_dir '/mnt/nlp/bert/chinese_L-12_H-768_A-12/'
