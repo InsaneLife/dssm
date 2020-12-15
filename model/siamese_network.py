@@ -276,15 +276,11 @@ class SiamenseBert(SiamenseRNN):
             return tf.reduce_mean(dissimilarity + similarity) / 2
     def forward(self):
         # 获取cls的输出
-        q_emb, q_seq, self.q_e = self.share_bert_layer(
+        q_emb, _, self.q_e = self.share_bert_layer(
             self.is_train_place, self.q_ids, self.q_mask_ids, self.q_seg_ids, use_bert_pre=1)
-        d_emb, d_seq, self.d_e = self.share_bert_layer(
+        d_emb, _, self.d_e = self.share_bert_layer(
             self.is_train_place, self.d_ids, self.d_mask_ids, self.d_seg_ids, use_bert_pre=1)
-        if self.cfg['use_avg_pooling']:
-            print("use avg pooling")
-            q_emb = tf.reduce_mean(q_seq, [1])  # bs * seq_len * dim
-            d_emb = tf.reduce_mean(d_seq, [1])
-        self.q_emb = tf.reduce_mean(q_seq, [1])
+        self.q_emb = q_emb
         # 计算cos相似度：
         # self.predict_prob, self.predict_idx = self.cos_sim(q_emb, d_emb)
         # 使用原文曼哈顿距离
