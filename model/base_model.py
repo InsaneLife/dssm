@@ -372,7 +372,6 @@ class BaseModel(object):
             pooled = tf.reduce_sum(sequence * input_mask_, axis=1) / tf.reduce_sum(input_mask_, axis=1)
         elif self.cfg['sentence_embedding_type'].startswith("avg-last-"):
             # 使用最后的n层 avg pooling
-            print(self.cfg['sentence_embedding_type'], "-" * 100)
             pooled = 0
             n_last = int(self.cfg['sentence_embedding_type'][-1])
             for i in range(n_last):
